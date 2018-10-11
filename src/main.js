@@ -26,6 +26,11 @@ new Vue({
 
 axios.interceptors.response.use(res => {
   if (res.data != null) {
+    switch (res.status) {
+      case 404: $.toptip("404 资源不存在", "error"); break;
+      case 504: $.toptip("连接超时", "error"); break;
+    }
+
     let status = res.data.status;
     switch (status) {
       case 400:
