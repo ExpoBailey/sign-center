@@ -16,7 +16,7 @@
           <div class="weui-panel">
             <div class="weui-panel__hd">我的项目</div>
             <div class="weui-panel__bd">
-              <div class="weui-media-box weui-media-box_small-appmsg">
+              <div class="weui-media-box weui-media-box_small-appmsg tab_box">
 
                 <div class="weui-loadmore" v-if="listWait">
                   <i class="weui-loading"></i>
@@ -27,7 +27,7 @@
                 </div>
 
                 <div class="weui-cells" v-if="list.length > 0">
-                  <div class="weui-cell weui-cell_swiped swipeout-touching" v-for="item in list">
+                  <div class="weui-cell weui-cell_swiped swipeout-touching" v-for="(item, index) in list">
                     <div class="weui-cell__bd" style="transform: translate3d(0px, 0px, 0px);">
                       <div class="weui-cell">
                         <div class="weui-cell__bd">
@@ -37,8 +37,8 @@
                       </div>
                     </div>
                     <div class="weui-cell__ft">
-                      <a class="weui-swiped-btn weui-swiped-btn_default close-swipeout" href="javascript:">关闭</a>
-                      <a class="weui-swiped-btn weui-swiped-btn_warn delete-swipeout" href="javascript:">删除</a>
+                      <a class="weui-swiped-btn weui-swiped-btn_default close-swipeout" href="javascript:">编辑</a>
+                      <a class="weui-swiped-btn weui-swiped-btn_warn delete-swipeout" @click="deleteProject(index)">删除</a>
                     </div>
                   </div>
                 </div>
@@ -95,11 +95,14 @@
         tabIndex: 1,
         list: [],
         listWait: true,
-        nowDateStr: ''
+        nowDateStr: '',
       }
     },
     mounted() {
       this.nowDateStr = this.getNowFormatDate();
+    },
+    updated() {
+      $('.weui-cell_swiped').swipeout()
     },
     methods: {
 
@@ -180,11 +183,29 @@
             vm.findAllProject();
           })
       },
+      deleteProject(index) {
+        let vm = this;
+        let project = vm.list[index];
+        vm.axios.get("/sign-center/api/project/delete?id=" + project.id)
+          .then(res => {
+            if (res.data.status === 200) {
+              $('.weui-cell_swiped').swipeout('close') //关闭
+              vm.list.splice(index, 1);
+            }
+          })
+          .catch(error => {
+            $('.weui-cell_swiped').swipeout('close') //关闭
+          });
+      },
 
       out() {
+        let vm = this;
         $.toast("正在退出", "loadind");
         this.axios.get('/sign-center/api/login/out').then(res => {
-
+          if (res.data.status === 200) {
+            $.toptip("已安全退出", "success");
+            vm.$router.push({name: 'login'})
+          }
         })
       }
 
@@ -193,4 +214,7 @@
   }
 </script>
 <style scoped>
+  .tab_box {
+    margin-bottom: 4em;
+  }
 </style>
