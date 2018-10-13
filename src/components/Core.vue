@@ -37,13 +37,13 @@
                       </div>
                     </div>
                     <div class="weui-cell__ft">
-                      <a class="weui-swiped-btn weui-swiped-btn_default close-swipeout" href="javascript:">编辑</a>
+                      <a class="weui-swiped-btn weui-swiped-btn_default close-swipeout" @click="promptSave(index)">编辑</a>
                       <a class="weui-swiped-btn weui-swiped-btn_warn delete-swipeout" @click="deleteProject(index)">删除</a>
                     </div>
                   </div>
                 </div>
                 <div class="weui-btn-area">
-                  <a href="javascript:;" @click="promptAdd" class="weui-btn weui-btn_primary">添加项目</a>
+                  <a @click="promptSave(-1)" class="weui-btn weui-btn_primary">添加项目</a>
                 </div>
 
               </div>
@@ -96,6 +96,11 @@
         list: [],
         listWait: true,
         nowDateStr: '',
+        project: {
+          id: null,
+          name: '',
+          projectType: 1
+        }
       }
     },
     mounted() {
@@ -145,28 +150,43 @@
           vm.listWait = false;
         })
       },
-      promptAdd() {
+      promptSave(index) {
         let vm = this;
+        let addFlag = false;
+        vm.project.id = null;
+        vm.project.name = '';
+        vm.project.projectType = 1;
+        if (index >= 0) {
+          addFlag = true;
+        } else {
+          vm.project = vm.list[index];
+        }
         $.prompt({
-          title: '新增项目',
+          title: addFlag ? '新增项目' : '修改项目',
           text: '请起一个新的名称',
-          input: '',
+          input: vm.project.name,
           empty: false,
           onOK: function (input) {
-            $.showLoading("正在验证");
-            vm.axios.post("/sign-center/api/project/exist", {name: input})
-              .then(res => {
-                $.hideLoading();
-                if (res.data.status === 200) {
-                  if (res.data.data.exist) {
-                    $.toptip("此项目名称已存在", "error");
-                  } else {
-                    vm.addProject(input);
+            if (input !== vm.project.name) {
+              $.showLoading("正在验证");
+              vm.axios.post("/sign-center/api/project/exist", {name: input})
+                .then(res => {
+                  $.hideLoading();
+                  if (res.data.status === 200) {
+                    if (res.data.data.exist) {
+                      $.toptip("此项目名称已存在", "error");
+                    } else {
+                      if (addFlag)
+                        vm.addProject(input);
+                      else
+                        vm.updateProject(vm.project.id, input);
+                    }
                   }
-                }
-              }).catch(error => {
+                }).catch(error => {
                 $.hideLoading();
-            });
+              });
+            }
+
           },
           onCancel: function () {
             $.toast("取消操作", "cancel");
@@ -175,7 +195,20 @@
       },
       addProject(name) {
         let vm = this;
-        vm.axios.post("/sign-center/api/project/add", {projectType: 1, name: name})
+        vm.project.name = name;
+        vm.axios.post("/sign-center/api/project/add", vm.project)
+          .then(res => {
+            if (res.data.status === 200) {
+              $.toast("成功");
+            }
+            vm.findAllProject();
+          })
+      },
+      updateProject(id, name) {
+        let vm = this;
+        vm.project.id = id;
+        vm.project.name = name;
+        vm.axios.post("/sign-center/api/project/update", vm.project)
           .then(res => {
             if (res.data.status === 200) {
               $.toast("成功");

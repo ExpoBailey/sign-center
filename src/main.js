@@ -34,25 +34,18 @@ axios.interceptors.response.use(res => {
     let status = res.data.status;
     let desc = "";
     switch (status) {
-      case 400:
-        desc = res.data.desc;
-        break;
+      case 400: desc = res.data.desc; break;
       case 401:
         desc = res.data.desc;
         router.push({name: 'login'});
         break;
-      case 403:
-        desc = res.data.desc;
-        break;
-      case 404:
-        desc = res.data.desc;
-        break;
+      case 403: desc = res.data.desc; break;
+      case 404: desc = res.data.desc; break;
       case 500:
         console.log(res);
         desc = "系统异常，请联系管理员";
         break;
-      default:
-        break;
+      default: break;
     }
     if (desc !== "") {
       $.toptip(res.data.desc, "error");
