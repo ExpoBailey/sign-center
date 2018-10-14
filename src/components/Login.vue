@@ -31,7 +31,7 @@
     name: 'login',
     data() {
       return {
-        projectName: '猫猫滴卡',
+        projectName: '喵喵嘀卡',
         btnClass: "weui-btn weui-btn_primary",
         btnDisabled: "weui-btn_disabled",
         btnDesc: "登录",

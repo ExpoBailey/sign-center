@@ -6,8 +6,24 @@
         <div id="sign" class="weui-tab__bd-item weui-tab__bd-item--active">
 
           <div class="demos-header" style="text-align: center">
-            <h1>{{ nowDateStr }}</h1>
             <flip-time></flip-time>
+            <div class="date-span">
+              <span>{{ nowDateStr }}</span>
+            </div>
+          </div>
+
+          <div class="weui-btn-area">
+            <div class="sign-btn" @click="sign">喵喵</div>
+            <div class="sign-btn-readonly" >喵喵</div>
+          </div>
+
+          <div class="weui-cells weui-cells_form">
+            <div class="weui-cell">
+              <div class="weui-cell__hd"><label for="signProject" class="weui-label">项目</label></div>
+              <div class="weui-cell__bd" @click="initSelect">
+                <input class="weui-input" id="signProject" type="text" value="" readonly="" onClose="selectClose" onChange="selectChange">
+              </div>
+            </div>
           </div>
 
         </div>
@@ -53,9 +69,9 @@
 
         <div id="count" class="weui-tab__bd-item">
 
-        <a @click="out" class="weui-btn weui-btn_primary">退出</a>
+          <a @click="out" class="weui-btn weui-btn_primary">退出</a>
 
-      </div>
+        </div>
       </div>
 
       <div class="weui-tabbar">
@@ -64,7 +80,7 @@
             <img v-if="tabIndex === 1" src="../assets/111.png" alt="">
             <img v-else src="../assets/11.png" alt="">
           </div>
-          <p class="weui-tabbar__label">滴卡</p>
+          <p class="weui-tabbar__label">嘀卡</p>
         </a>
         <a href="#list" @click="clickTab(2)" class="weui-tabbar__item">
           <div class="weui-tabbar__icon">
@@ -85,7 +101,6 @@
 
 </template>
 <script>
-
   import FlipTime from "./FlipTime";
   export default {
     name: 'core',
@@ -103,14 +118,64 @@
         }
       }
     },
+    create() {
+
+    },
     mounted() {
       this.nowDateStr = this.getNowFormatDate();
+
+      this.init();
     },
     updated() {
       $('.weui-cell_swiped').swipeout()
     },
     methods: {
+      init() {
 
+      },
+      initSelect() {
+        let vm = this;
+        vm.axios.get('/sign-center/api/project/all').then(res => {
+          if (res.data.status === 200) {
+            vm.list = res.data.data;
+            return vm.projectListToNames(res.data.data);
+          }
+
+        }).then(names => {
+          $("#signProject").picker({
+            title: "请选择滴卡的项目",
+            cols: [
+              {
+                textAlign: 'center',
+                values: names
+              }
+            ]
+          });
+        });
+      },
+      projectListToNames(list) {
+        let names = [];
+        if (list !== undefined && list != null && list.length > 0) {
+          list.each(project => {
+            names.push(project.name)
+          })
+        }
+        return names;
+      },
+      nameToProjectId(name) {
+        let vm = this;
+        let id = null;
+        vm.list.each(project => {
+          if (project.name === name) id = project.id;
+        });
+        return id;
+      },
+      selectChange(name) {
+        console.log("改变为：" + name);
+      },
+      selectClose(name) {
+        console.log("关闭时：" + name);
+      },
       clickTab(index) {
         this.tabIndex = index;
         switch (index) {
@@ -127,6 +192,7 @@
 
       getNowFormatDate() {
         let date = new Date();
+        let year = date.getFullYear();
         let month = date.getMonth() + 1;
         let strDate = date.getDate();
         if (month >= 1 && month <= 9) {
@@ -135,7 +201,10 @@
         if (strDate >= 0 && strDate <= 9) {
           strDate = "0" + strDate;
         }
-        return month + "月" + strDate + "日";
+        return year + "年" + month + "月" + strDate + "日";
+      },
+      sign(event) {
+
       },
 
       findAllProject() {
@@ -247,7 +316,36 @@
   }
 </script>
 <style scoped>
+
   .tab_box {
     margin-bottom: 4em;
+  }
+  .date-span {
+    text-align: right;
+    margin-right: 2.5em;
+    font-weight: bold;
+    color: #3B3B3B;
+  }
+  .sign-btn {
+    height: 4em;
+    line-height: 4em;
+    width: 50%;
+    background-color: #383838;
+    color: #fff;
+    text-align: center;
+    margin: auto;
+    border-radius: 0.3em 1em;
+    cursor: pointer;
+  }
+  .sign-btn-readonly {
+    height: 4em;
+    line-height: 4em;
+    width: 50%;
+    background-color: #C4C4C4;
+    color: #fff;
+    text-align: center;
+    margin: auto;
+    border-radius: 0.3em 1em;
+    cursor: not-allowed;
   }
 </style>
