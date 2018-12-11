@@ -5,23 +5,40 @@
       <div class="weui-tab__bd">
         <div id="sign" class="weui-tab__bd-item weui-tab__bd-item--active">
 
-          <div class="demos-header" style="text-align: center">
+          <div class="demos-header date-div">
             <flip-time></flip-time>
             <div class="date-span">
               <span>{{ nowDateStr }}</span>
             </div>
           </div>
 
-          <div class="weui-btn-area">
-            <div class="sign-btn" @click="sign">喵喵</div>
-            <div class="sign-btn-readonly" >喵喵</div>
-          </div>
+          <transition enter-active-class="animated bounceIn"
+                      leave-active-class="animated bounceOut">
+            <div class="weui-btn-area" v-show="showSign">
+              <div class="sign-btn" @click="sign">喵喵</div>
+            </div>
+          </transition>
 
           <div class="weui-cells weui-cells_form">
+
             <div class="weui-cell">
               <div class="weui-cell__hd"><label for="signProject" class="weui-label">项目</label></div>
               <div class="weui-cell__bd" @click="initSelect">
                 <input class="weui-input" id="signProject" type="text" value="" readonly="" onClose="selectClose" onChange="selectChange">
+              </div>
+            </div>
+
+            <div class="weui-cell weui-cell_switch">
+              <div class="weui-cell__bd">备注</div>
+              <div class="weui-cell__ft">
+                <input class="weui-switch" type="checkbox" @click="showRemark=!showRemark">
+              </div>
+            </div>
+
+            <div class="weui-cell" v-show="showRemark">
+              <div class="weui-cell__bd">
+                <textarea class="weui-textarea" placeholder="请输入备注" rows="3" v-model="sign.remark" maxlength="200"></textarea>
+                <div class="weui-textarea-counter"><span>{{sign.remark.length}}</span>/200</div>
               </div>
             </div>
           </div>
@@ -102,11 +119,14 @@
 </template>
 <script>
   import FlipTime from "./FlipTime";
+  import Utils from "../utils"
   export default {
     name: 'core',
     components: {FlipTime},
     data() {
       return {
+        showSign: true,
+        showRemark: false,
         tabIndex: 1,
         list: [],
         listWait: true,
@@ -115,14 +135,14 @@
           id: null,
           name: '',
           projectType: 1
+        },
+        sign: {
+          remark: ''
         }
       }
     },
-    create() {
-
-    },
     mounted() {
-      this.nowDateStr = this.getNowFormatDate();
+      this.nowDateStr = new Date().toDateString();
 
       this.init();
     },
@@ -135,23 +155,40 @@
       },
       initSelect() {
         let vm = this;
-        vm.axios.get('/sign-center/api/project/all').then(res => {
+        vm.axios.get('/sign-center/api/project/all')
+          .then(res => {
           if (res.data.status === 200) {
             vm.list = res.data.data;
             return vm.projectListToNames(res.data.data);
           }
 
-        }).then(names => {
-          $("#signProject").picker({
-            title: "请选择滴卡的项目",
-            cols: [
-              {
-                textAlign: 'center',
-                values: names
-              }
-            ]
+        })
+          .then(names => {
+            if (names === null || names.length === 0) {
+              names = ["暂无项目"];
+            }
+            $("#signProject").picker({
+              title: "请选择滴卡的项目",
+              cols: [
+                {
+                  textAlign: 'center',
+                  values: names
+                }
+              ]
+            });
+        })
+          .catch(error => {
+            let names = ["暂无项目"];
+            $("#signProject").picker({
+              title: "请选择滴卡的项目",
+              cols: [
+                {
+                  textAlign: 'center',
+                  values: names
+                }
+              ]
+            });
           });
-        });
       },
       projectListToNames(list) {
         let names = [];
@@ -189,22 +226,12 @@
           default:
         }
       },
-
-      getNowFormatDate() {
-        let date = new Date();
-        let year = date.getFullYear();
-        let month = date.getMonth() + 1;
-        let strDate = date.getDate();
-        if (month >= 1 && month <= 9) {
-          month = "0" + month;
-        }
-        if (strDate >= 0 && strDate <= 9) {
-          strDate = "0" + strDate;
-        }
-        return year + "年" + month + "月" + strDate + "日";
-      },
       sign(event) {
-
+        let vm = this;
+        vm.showSign = false;
+        window.setTimeout(function () {
+          vm.showSign = true;
+        }, 900)
       },
 
       findAllProject() {
@@ -326,26 +353,24 @@
     font-weight: bold;
     color: #3B3B3B;
   }
+
   .sign-btn {
-    height: 4em;
-    line-height: 4em;
-    width: 50%;
-    background-color: #383838;
+    height: 6em;
+    line-height: 6em;
+    width: 6em;
+    font-size: 22px;
+    background-color: #3cc51f;
     color: #fff;
     text-align: center;
     margin: auto;
-    border-radius: 0.3em 1em;
+    border-radius: 50%;
     cursor: pointer;
   }
-  .sign-btn-readonly {
-    height: 4em;
-    line-height: 4em;
-    width: 50%;
-    background-color: #C4C4C4;
-    color: #fff;
+
+  .date-div {
     text-align: center;
-    margin: auto;
-    border-radius: 0.3em 1em;
-    cursor: not-allowed;
+    border: 1px slategray solid;
+    margin: 1em 1em;
+    border-radius: 3px;
   }
 </style>

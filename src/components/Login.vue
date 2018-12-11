@@ -1,6 +1,7 @@
 <template>
   <div>
     <header class="demos-header">
+      <img src="../assets/images/logo.png" class="logo">
       <h1 class="demos-title">{{projectName}}</h1>
     </header>
     <div class="weui-cells weui-cells_form">
@@ -45,13 +46,13 @@
     methods: {
       login() {
         let vm = this;
-        if (vm.user.userCode === '') {
-          $.toptip('请输入用户帐号', 'error');
-          return;
-        } else if (vm.user.password === '') {
-          $.toptip('请输入密码', 'error');
-          return;
-        }
+        // if (vm.user.userCode === '') {
+        //   $.toptip('请输入用户帐号', 'error');
+        //   return;
+        // } else if (vm.user.password === '') {
+        //   $.toptip('请输入密码', 'error');
+        //   return;
+        // }
         vm.btnDesc = "登录中...";
         vm.wait = true;
         vm.axios.post('/sign-center/api/login/into', vm.user).then(res => {
@@ -59,6 +60,7 @@
             vm.$router.push({name: 'core'});
           }
         });
+        vm.$router.push({name: 'core'});
         vm.btnDesc = "登录";
         vm.wait = false;
       }
@@ -68,5 +70,22 @@
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
+  .demos-header {
+    padding: 0 0;
+    text-align: center;
+  }
 
+  .logo {
+    position: relative;
+    width: 200px;
+  }
+
+  .demos-title {
+    text-align: center;
+    font-size: 1.5em;
+    color: #3cc51f;
+    font-weight: 400;
+    margin: 0 auto;
+    line-height: 0.5;
+  }
 </style>
