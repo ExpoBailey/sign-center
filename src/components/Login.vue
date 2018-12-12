@@ -46,13 +46,13 @@
     methods: {
       login() {
         let vm = this;
-        // if (vm.user.userCode === '') {
-        //   $.toptip('请输入用户帐号', 'error');
-        //   return;
-        // } else if (vm.user.password === '') {
-        //   $.toptip('请输入密码', 'error');
-        //   return;
-        // }
+        if (vm.user.userCode === '') {
+          $.toptip('请输入用户帐号', 'error');
+          return;
+        } else if (vm.user.password === '') {
+          $.toptip('请输入密码', 'error');
+          return;
+        }
         vm.btnDesc = "登录中...";
         vm.wait = true;
         vm.axios.post('/sign-center/api/login/into', vm.user).then(res => {
@@ -60,7 +60,7 @@
             vm.$router.push({name: 'core'});
           }
         });
-        vm.$router.push({name: 'core'});
+        // vm.$router.push({name: 'core'});
         vm.btnDesc = "登录";
         vm.wait = false;
       }

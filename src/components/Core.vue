@@ -2,7 +2,8 @@
 
     <div class="weui-tab">
 
-      <div class="weui-tab__bd">
+      <div class="weui-tab__bd tab_box_content">
+
         <div id="sign" class="weui-tab__bd-item weui-tab__bd-item--active">
 
           <div class="demos-header date-div">
@@ -13,9 +14,9 @@
           </div>
 
           <transition enter-active-class="animated bounceIn"
-                      leave-active-class="animated bounceOut">
+                      leave-active-class="animated bounceOut" >
             <div class="weui-btn-area" v-show="showSign">
-              <div class="sign-btn" @click="sign">喵喵</div>
+              <div class="sign-btn" @click="submitSignProject">{{signDesc}}</div>
             </div>
           </transition>
 
@@ -23,8 +24,10 @@
 
             <div class="weui-cell">
               <div class="weui-cell__hd"><label for="signProject" class="weui-label">项目</label></div>
-              <div class="weui-cell__bd" @click="initSelect">
-                <input class="weui-input" id="signProject" type="text" value="" readonly="" onClose="selectClose" onChange="selectChange">
+              <div class="weui-cell__bd" >
+                <input class="weui-input" id="signProject" type="text" value readonly
+                       @click="initSelect" placeholder="请选择项目"
+                       >
               </div>
             </div>
 
@@ -47,7 +50,10 @@
 
         <div id="list" class="weui-tab__bd-item">
           <div class="weui-panel">
-            <div class="weui-panel__hd">我的项目</div>
+            <div class="weui-panel__hd">
+              <span>我的项目</span>
+              <a @click="promptSave(-1)" class="weui-btn weui-btn_mini weui-btn_primary right-header">添加项目</a>
+            </div>
             <div class="weui-panel__bd">
               <div class="weui-media-box weui-media-box_small-appmsg tab_box">
 
@@ -75,9 +81,6 @@
                     </div>
                   </div>
                 </div>
-                <div class="weui-btn-area">
-                  <a @click="promptSave(-1)" class="weui-btn weui-btn_primary">添加项目</a>
-                </div>
 
               </div>
             </div>
@@ -87,6 +90,7 @@
         <div id="count" class="weui-tab__bd-item">
 
           <a @click="out" class="weui-btn weui-btn_primary">退出</a>
+          <a @click="findSignAll" class="weui-btn weui-btn_primary">查询</a>
 
         </div>
       </div>
@@ -120,11 +124,23 @@
 <script>
   import FlipTime from "./FlipTime";
   import Utils from "../utils"
+
+  document.addEventListener('touchstart', function(event) {
+    // 判断默认行为是否可以被禁用
+    if (event.cancelable) {
+      // 判断默认行为是否已经被禁用
+      if (!event.defaultPrevented) {
+        event.preventDefault();
+      }
+    }
+  }, false);
+
   export default {
     name: 'core',
     components: {FlipTime},
     data() {
       return {
+        signDesc: '嘀',
         showSign: true,
         showRemark: false,
         tabIndex: 1,
@@ -137,6 +153,9 @@
           projectType: 1
         },
         sign: {
+          projectId: null,
+          startDate: null,
+          endDate: null,
           remark: ''
         }
       }
@@ -157,13 +176,13 @@
         let vm = this;
         vm.axios.get('/sign-center/api/project/all')
           .then(res => {
-          if (res.data.status === 200) {
-            vm.list = res.data.data;
-            return vm.projectListToNames(res.data.data);
-          }
-
-        })
+            if (res.data.status === 200) {
+              vm.list = res.data.data;
+              return vm.projectListToNames(res.data.data);
+            }
+          })
           .then(names => {
+            console.log(names);
             if (names === null || names.length === 0) {
               names = ["暂无项目"];
             }
@@ -174,10 +193,15 @@
                   textAlign: 'center',
                   values: names
                 }
-              ]
+              ],
+              onClose: obj => {
+                if (obj.value[0] !== '暂无项目')
+                  vm.sign.projectId = vm.nameToProjectId(obj.value[0])
+              }
             });
-        })
+          })
           .catch(error => {
+            console.log(error);
             let names = ["暂无项目"];
             $("#signProject").picker({
               title: "请选择滴卡的项目",
@@ -193,7 +217,7 @@
       projectListToNames(list) {
         let names = [];
         if (list !== undefined && list != null && list.length > 0) {
-          list.each(project => {
+          list.forEach(project => {
             names.push(project.name)
           })
         }
@@ -202,7 +226,7 @@
       nameToProjectId(name) {
         let vm = this;
         let id = null;
-        vm.list.each(project => {
+        vm.list.forEach(project => {
           if (project.name === name) id = project.id;
         });
         return id;
@@ -212,6 +236,7 @@
       },
       selectClose(name) {
         console.log("关闭时：" + name);
+        $.closePicker()
       },
       clickTab(index) {
         this.tabIndex = index;
@@ -225,10 +250,30 @@
             break;
           default:
         }
+        $('.weui-cell_swiped').swipeout('close');
       },
-      sign(event) {
+
+      submitSignProject(event) {
         let vm = this;
+        // 校验数据
+        if (vm.sign.projectId == null) {
+          $.toptip('请先选择项目', 'error');
+          return
+        }
+        vm.sign.startDate = Utils.getNowStringDate();
+        vm.sign.endDate = '';
         vm.showSign = false;
+
+        vm.axios.post('/sign-center/api/core/sign', vm.sign)
+          .then(res => {
+            if (res.data.status === 200) {
+              $.toptip('嘀卡成功', 'success');
+            }
+          })
+          .then(res => {
+            vm.sign.remark = '';
+          });
+
         window.setTimeout(function () {
           vm.showSign = true;
         }, 900)
@@ -252,10 +297,11 @@
         vm.project.id = null;
         vm.project.name = '';
         vm.project.projectType = 1;
-        if (index >= 0) {
+        if (index < 0) {
           addFlag = true;
         } else {
-          vm.project = vm.list[index];
+          vm.project.id = vm.list[index].id;
+          vm.project.name = vm.list[index].name;
         }
         $.prompt({
           title: addFlag ? '新增项目' : '修改项目',
@@ -285,9 +331,11 @@
 
           },
           onCancel: function () {
-            $.toast("取消操作", "cancel");
+            // $.toast("取消操作", "cancel");
           }
         });
+
+        $('.weui-cell_swiped').swipeout('close');
       },
       addProject(name) {
         let vm = this;
@@ -310,6 +358,9 @@
               $.toast("成功");
             }
             vm.findAllProject();
+          })
+          .then(res => {
+            $('.weui-cell_swiped').swipeout('close');
           })
       },
       deleteProject(index) {
@@ -336,8 +387,17 @@
             vm.$router.push({name: 'login'})
           }
         })
-      }
+      },
 
+      findSignAll() {
+        let vm = this;
+        vm.axios.get('/sign-center/api/core/sign/all')
+          .then(res => {
+            if (res.data.status === 200) {
+
+            }
+          })
+      }
 
     }
   }
@@ -347,6 +407,11 @@
   .tab_box {
     margin-bottom: 4em;
   }
+
+  .tab_box_content {
+    height: 91%;
+  }
+
   .date-span {
     text-align: right;
     margin-right: 2.5em;
@@ -369,8 +434,15 @@
 
   .date-div {
     text-align: center;
-    border: 1px slategray solid;
+    border: 1px #D3D3D3 solid;
     margin: 1em 1em;
     border-radius: 3px;
+    padding: 16px 0;
+  }
+
+  .right-header {
+    position: absolute;
+    right: 1em;
+    top: 0.5em;
   }
 </style>
