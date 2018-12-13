@@ -72,7 +72,7 @@
                         <div class="weui-cell__bd">
                           <p>{{item.name}}</p>
                         </div>
-                        <div class="weui-cell__ft">向左滑动试试</div>
+                        <div class="weui-cell__ft">向左滑动玩玩</div>
                       </div>
                     </div>
                     <div class="weui-cell__ft">
@@ -89,8 +89,37 @@
 
         <div id="count" class="weui-tab__bd-item">
 
-          <a @click="out" class="weui-btn weui-btn_primary">退出</a>
-          <a @click="findSignAll" class="weui-btn weui-btn_primary">查询</a>
+          <div class="weui-cells weui-cells_form">
+            <div class="weui-cell">
+              <div class="weui-cell__hd"><label for="startDate" class="weui-label">开始日期</label></div>
+              <div class="weui-cell__bd">
+                <input class="weui-input" id="startDate" data-toggle='date' type="text" v-model="query.startDate"
+                       readonly>
+              </div>
+            </div>
+            <div class="weui-cell">
+              <div class="weui-cell__hd"><label for="endDate" class="weui-label">结束日期</label></div>
+              <div class="weui-cell__bd">
+                <input class="weui-input" id="endDate" data-toggle='date' type="text" v-model="query.endDate"
+                       readonly >
+              </div>
+            </div>
+          </div>
+
+          <!--<a @click="out" class="weui-btn weui-btn_primary">退出</a>-->
+
+          <div class="weui-cells__title">我的纪录</div>
+          <div class="weui-loadmore weui-loadmore_line" v-if="signInfoList.length === 0">
+            <span class="weui-loadmore__tips">暂无数据</span>
+          </div>
+          <div class="weui-cells">
+            <div class="weui-cell" v-for="(item, index) in signInfoList">
+              <div class="weui-cell__bd">
+                <p>{{item.project.name}}</p>
+              </div>
+              <div class="weui-cell__ft">{{item.startDate}}</div>
+            </div>
+          </div>
 
         </div>
       </div>
@@ -115,7 +144,7 @@
             <img v-if="tabIndex === 3" src="../assets/333.png" alt="">
             <img v-else src="../assets/33.png" alt="">
           </div>
-          <p class="weui-tabbar__label">数据</p>
+          <p class="weui-tabbar__label">纪录</p>
         </a>
       </div>
     </div>
@@ -124,16 +153,6 @@
 <script>
   import FlipTime from "./FlipTime";
   import Utils from "../utils"
-
-  document.addEventListener('touchstart', function(event) {
-    // 判断默认行为是否可以被禁用
-    if (event.cancelable) {
-      // 判断默认行为是否已经被禁用
-      if (!event.defaultPrevented) {
-        event.preventDefault();
-      }
-    }
-  }, false);
 
   export default {
     name: 'core',
@@ -157,12 +176,20 @@
           startDate: null,
           endDate: null,
           remark: ''
-        }
+        },
+        query: {
+          projectId: null,
+          startDate: null,
+          endDate: null,
+          sortFlag: 1
+        },
+        signInfoList: []
       }
     },
     mounted() {
       this.nowDateStr = new Date().toDateString();
-
+      this.query.startDate = Utils.getTodayString();
+      this.query.endDate = Utils.getTodayString();
       this.init();
     },
     updated() {
@@ -170,7 +197,19 @@
     },
     methods: {
       init() {
-
+        this.initDate();
+        this.initSelect();
+      },
+      initDate() {
+        let vm = this;
+        $("#startDate").calendar({
+          dateFormat: 'yyyy-mm-dd',
+          onChange: vm.changeStartDate
+        });
+        $("#endDate").calendar({
+          dateFormat: 'yyyy-mm-dd',
+          onChange: vm.changeEndDate
+        });
       },
       initSelect() {
         let vm = this;
@@ -214,6 +253,16 @@
             });
           });
       },
+      changeStartDate(p, values, displayValues) {
+        let vm = this;
+        vm.query.startDate = values[0];
+        vm.findSignAll(vm.query.projectId, vm.query.startDate, vm.query.endDate);
+      },
+      changeEndDate(p, values, displayValues) {
+        let vm = this;
+        vm.query.endDate = values[0];
+        vm.findSignAll(vm.query.projectId, vm.query.startDate, vm.query.endDate);
+      },
       projectListToNames(list) {
         let names = [];
         if (list !== undefined && list != null && list.length > 0) {
@@ -239,6 +288,7 @@
         $.closePicker()
       },
       clickTab(index) {
+        let vm = this;
         this.tabIndex = index;
         switch (index) {
           case 1:
@@ -247,6 +297,7 @@
             this.findAllProject();
             break;
           case 3:
+            vm.findSignAll(vm.query.projectId, vm.query.startDate, vm.query.endDate);
             break;
           default:
         }
@@ -366,16 +417,18 @@
       deleteProject(index) {
         let vm = this;
         let project = vm.list[index];
-        vm.axios.get("/sign-center/api/project/delete?id=" + project.id)
-          .then(res => {
-            if (res.data.status === 200) {
-              $('.weui-cell_swiped').swipeout('close') //关闭
-              vm.list.splice(index, 1);
-            }
-          })
-          .catch(error => {
-            $('.weui-cell_swiped').swipeout('close') //关闭
-          });
+        $.confirm("同时清除该项目的嘀卡记录", "确认删除【" + project.name + "】？", function () {
+          vm.axios.get("/sign-center/api/project/delete?id=" + project.id)
+            .then(res => {
+              if (res.data.status === 200) {
+                vm.list.splice(index, 1);
+              }
+            });
+        }, function () {
+
+        });
+
+        $('.weui-cell_swiped').swipeout('close') //关闭
       },
 
       out() {
@@ -389,12 +442,36 @@
         })
       },
 
-      findSignAll() {
+      findSignAll(projectId, startDate, endDate, sortFlag = 0) {
         let vm = this;
-        vm.axios.get('/sign-center/api/core/sign/all')
+        // 开始、结束时间相同，查当天记录
+        if (startDate === endDate) {
+          if (startDate == null) {
+            startDate = endDate = Utils.getTodayString();
+          }
+          startDate += " 00:00:00";
+          endDate += " 23:59:59";
+        } else {
+          // 开始时间为空，默认很早；0点开始
+          if (startDate == null) {
+            startDate = "1999-12-12 00:00:00";
+          } else {
+            startDate += " 00:00:00";
+          }
+
+          // 结束时间，默认很远，23:59:59结束
+          if (endDate == null) {
+            endDate = "2099-12-12 23:59:59";
+          } else {
+            endDate += " 23:59:59";
+          }
+        }
+        let queryParams = "?startDate=" + startDate + "&endDate=" + endDate + "&sortFlag=" + sortFlag + (projectId ==
+          null ? '' : ("&projectId=" + projectId));
+        vm.axios.get('/sign-center/api/core/sign/all' + queryParams)
           .then(res => {
             if (res.data.status === 200) {
-
+              vm.signInfoList = res.data.data;
             }
           })
       }
