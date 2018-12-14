@@ -14,8 +14,17 @@ Vue.config.productionTip = false
 
 $.toast.prototype.defaults.duration = 1000
 
-Vue.use(weui)
+Vue.use(weui);
+// Vue.use($);
 Vue.prototype.axios = axios;
+
+
+Vue.filter('restrictLength', function (value, length) {
+  if (value != null && length >= 0 && value.length > length) {
+    return value.substring(0, length) + "...";
+  }
+  return value;
+});
 
 /* eslint-disable no-new */
 new Vue({

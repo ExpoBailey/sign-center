@@ -12,13 +12,16 @@
               <span>{{ nowDateStr }}</span>
             </div>
           </div>
-
-          <transition enter-active-class="animated bounceIn"
-                      leave-active-class="animated bounceOut" >
-            <div class="weui-btn-area" v-show="showSign">
-              <div class="sign-btn" @click="submitSignProject">{{signDesc}}</div>
-            </div>
-          </transition>
+          <div class="weui-btn-area sign-height">
+            <transition enter-active-class="animated bounceIn"
+                        leave-active-class="animated bounceOut"
+                        @after-enter="canSign = true"
+                        @before-leave="canSign = false">
+              <div class="weui-btn-area" v-show="showSign">
+                <div class="sign-btn sign-height" @click="submitSignProject">{{signDesc}}</div>
+              </div>
+            </transition>
+          </div>
 
           <div class="weui-cells weui-cells_form">
 
@@ -26,7 +29,7 @@
               <div class="weui-cell__hd"><label for="signProject" class="weui-label">项目</label></div>
               <div class="weui-cell__bd" >
                 <input class="weui-input" id="signProject" type="text" value readonly
-                       @click="initSelect" placeholder="请选择项目"
+                       @click="updateSelectConfig" placeholder="请选择项目"
                        >
               </div>
             </div>
@@ -34,7 +37,7 @@
             <div class="weui-cell weui-cell_switch">
               <div class="weui-cell__bd">备注</div>
               <div class="weui-cell__ft">
-                <input class="weui-switch" type="checkbox" @click="showRemark=!showRemark">
+                <input class="weui-switch" type="checkbox" @click="showRemark=!showRemark" :checked="showRemark">
               </div>
             </div>
 
@@ -91,6 +94,13 @@
 
           <div class="weui-cells weui-cells_form">
             <div class="weui-cell">
+              <div class="weui-cell__hd"><label for="queryProject" class="weui-label">项目</label></div>
+              <div class="weui-cell__bd">
+                <input class="weui-input" id="queryProject" type="text" placeholder="所有项目" readonly
+                       :value="querySelectName" @click="setCountSelect">
+              </div>
+            </div>
+            <div class="weui-cell">
               <div class="weui-cell__hd"><label for="startDate" class="weui-label">开始日期</label></div>
               <div class="weui-cell__bd">
                 <input class="weui-input" id="startDate" data-toggle='date' type="text" v-model="query.startDate"
@@ -115,11 +125,72 @@
           <div class="weui-cells">
             <div class="weui-cell" v-for="(item, index) in signInfoList">
               <div class="weui-cell__bd">
-                <p>{{item.project.name}}</p>
+                <p>{{item.project.name | restrictLength(5)}}</p>
+              </div>
+              <div class="weui-cell__hd" v-if="item.remark != ''" @click="clickInfoShowRemark(item)">
+                <img src="../assets/images/remark.png" style="width:20px;margin-right:5px;display:block">
               </div>
               <div class="weui-cell__ft">{{item.startDate}}</div>
             </div>
           </div>
+
+          <div id="infoRemark" class="weui-popup__container popup-bottom">
+            <div class="weui-popup__overlay"></div>
+            <div class="weui-popup__modal">
+              <div class="toolbar">
+                <div class="toolbar-inner">
+                  <a href="javascript:;" class="picker-button close-popup">关闭</a>
+                  <h1 class="title">【{{popupTitle}}】纪录的备注</h1>
+                </div>
+              </div>
+              <div class="modal-content">
+                <div class="weui-grids">
+                  <div class="weui-cells weui-cells_form">
+                    <div class="weui-cell">
+                      <div class="weui-cell__bd">
+                        <textarea class="weui-textarea" :value="popupRemark" rows="3" readonly></textarea>
+                        <div class="weui-textarea-counter"><span>不可修改</span></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 多选的下弹 -->
+          <div id="countPopup" class="weui-popup__container popup-bottom">
+            <div class="weui-popup__overlay"></div>
+            <div class="weui-popup__modal count-select">
+              <div class="toolbar">
+                <div class="toolbar-inner">
+                  <a href="javascript:;" class="picker-button close-popup" @click="okSelect">确定</a>
+                  <h1 class="title">选择项目</h1>
+                </div>
+              </div>
+              <div class="modal-content">
+                <div class="weui-grids ">
+                  <div class="weui-cells weui-cells_checkbox" >
+                    <div class="weui-loadmore weui-loadmore_line" v-if="list.length === 0">
+                      <span class="weui-loadmore__tips">暂无数据</span>
+                    </div>
+                    <label class="weui-cell weui-check__label" v-for="(item, index) in list"
+                           :key="index">
+                      <div class="weui-cell__hd">
+                        <input type="checkbox" class="weui-check"
+                               :value="item.id" v-model="tempProjectIds">
+                        <i class="weui-icon-checked"></i>
+                      </div>
+                      <div class="weui-cell__bd" style="text-align: center;">
+                        <p>{{item.name}}</p>
+                      </div>
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
 
         </div>
       </div>
@@ -159,8 +230,9 @@
     components: {FlipTime},
     data() {
       return {
-        signDesc: '嘀',
-        showSign: true,
+        signDesc: 'Sign',
+        showSign: false,
+        canSign: false,
         showRemark: false,
         tabIndex: 1,
         list: [],
@@ -181,12 +253,30 @@
           projectId: null,
           startDate: null,
           endDate: null,
-          sortFlag: 1
+          sortFlag: 1,
+          projectIds:[]
         },
-        signInfoList: []
+        tempProjectIds:[],
+        signInfoList: [],
+        popupTitle: '',
+        popupRemark: ''
+      }
+    },
+    computed: {
+      querySelectName: function () {
+        let names = [];
+        let vm = this;
+        if (vm.query.projectIds.length === 0) return null;
+        vm.list.forEach(project => {
+          if (vm.query.projectIds.indexOf(project.id) !== -1) {
+            names.push(project.name);
+          }
+        });
+        return names.join(", ");
       }
     },
     mounted() {
+      this.showSign = true;
       this.nowDateStr = new Date().toDateString();
       this.query.startDate = Utils.getTodayString();
       this.query.endDate = Utils.getTodayString();
@@ -199,6 +289,7 @@
       init() {
         this.initDate();
         this.initSelect();
+        this.initAllSelect();
       },
       initDate() {
         let vm = this;
@@ -221,7 +312,7 @@
             }
           })
           .then(names => {
-            console.log(names);
+            // 初始化签到选择
             if (names === null || names.length === 0) {
               names = ["暂无项目"];
             }
@@ -249,9 +340,59 @@
                   textAlign: 'center',
                   values: names
                 }
-              ]
+              ],
+              onClose: obj => {
+                if (obj.value[0] !== '暂无项目')
+                  vm.sign.projectId = vm.nameToProjectId(obj.value[0])
+              }
             });
           });
+
+      },
+      updateSelectConfig() {
+        let vm = this;
+        vm.axios.get('/sign-center/api/project/all')
+          .then(res => {
+            if (res.data.status === 200) {
+              vm.list = res.data.data;
+              return vm.projectListToNames(res.data.data);
+            }
+          })
+          .then(names => {
+            // 初始化签到选择
+            if (names === null || names.length === 0) {
+              names = ["暂无项目"];
+            }
+            // $("#signProject").picker("setValue", names);
+            $("#signProject").picker("setValue", ["2012", "12", "12"]);
+          })
+          .catch(error => {
+            console.log(error);
+            let names = ["暂无项目"];
+            $("#signProject").picker("setValue", names);
+          });
+      },
+      initAllSelect() {
+        let vm = this;
+        // 纪录中的多选
+
+      },
+      setCountSelect() {
+        let vm = this;
+        vm.tempProjectIds = vm.query.projectIds;
+        $("#countPopup").popup();
+        vm.axios.get('/sign-center/api/project/all')
+          .then(res => {
+            if (res.data.status === 200) {
+              vm.list = res.data.data;
+            }
+          });
+      },
+      okSelect() {
+        let vm = this;
+        vm.query.projectIds = vm.tempProjectIds;
+        vm.tempProjectIds = [];
+        vm.findSignAll(vm.query.projectIds, vm.query.startDate, vm.query.endDate);
       },
       changeStartDate(p, values, displayValues) {
         let vm = this;
@@ -306,6 +447,7 @@
 
       submitSignProject(event) {
         let vm = this;
+        if (!vm.canSign) return;
         // 校验数据
         if (vm.sign.projectId == null) {
           $.toptip('请先选择项目', 'error');
@@ -322,12 +464,13 @@
             }
           })
           .then(res => {
+            vm.showRemark = false;
             vm.sign.remark = '';
           });
 
         window.setTimeout(function () {
           vm.showSign = true;
-        }, 900)
+        }, 1500)
       },
 
       findAllProject() {
@@ -442,7 +585,7 @@
         })
       },
 
-      findSignAll(projectId, startDate, endDate, sortFlag = 0) {
+      findSignAll(projectIds, startDate, endDate, sortFlag = 0) {
         let vm = this;
         // 开始、结束时间相同，查当天记录
         if (startDate === endDate) {
@@ -466,14 +609,21 @@
             endDate += " 23:59:59";
           }
         }
-        let queryParams = "?startDate=" + startDate + "&endDate=" + endDate + "&sortFlag=" + sortFlag + (projectId ==
-          null ? '' : ("&projectId=" + projectId));
+        let queryParams = "?startDate=" + startDate + "&endDate=" + endDate + "&sortFlag=" + sortFlag + (projectIds ==
+          null ? '' : ("&projectIds=" + projectIds.join(",")));
         vm.axios.get('/sign-center/api/core/sign/all' + queryParams)
           .then(res => {
             if (res.data.status === 200) {
               vm.signInfoList = res.data.data;
             }
           })
+      },
+
+      clickInfoShowRemark(info) {
+        let vm = this;
+        vm.popupTitle = info.project.name;
+        vm.popupRemark = info.remark;
+        $("#infoRemark").popup();
       }
 
     }
@@ -489,6 +639,10 @@
     height: 91%;
   }
 
+  .weui-tabbar {
+    z-index: 1;
+  }
+
   .date-span {
     text-align: right;
     margin-right: 2.5em;
@@ -497,8 +651,6 @@
   }
 
   .sign-btn {
-    height: 6em;
-    line-height: 6em;
     width: 6em;
     font-size: 22px;
     background-color: #3cc51f;
@@ -507,6 +659,13 @@
     margin: auto;
     border-radius: 50%;
     cursor: pointer;
+    opacity: 1;
+  }
+
+  .sign-height {
+    height: 6em;
+    line-height: 6em;
+    font-size: 22px;
   }
 
   .date-div {
@@ -521,5 +680,14 @@
     position: absolute;
     right: 1em;
     top: 0.5em;
+  }
+
+  .count-select {
+    max-height: 50%;
+    display: flex;
+    width: 100%;
+    flex-direction: column;
+    position: fixed;
+    bottom: 0;
   }
 </style>
