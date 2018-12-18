@@ -26,11 +26,10 @@
           <div class="weui-cells weui-cells_form">
 
             <div class="weui-cell">
-              <div class="weui-cell__hd"><label for="signProject" class="weui-label">项目</label></div>
-              <div class="weui-cell__bd" >
-                <input class="weui-input" id="signProject" type="text" value readonly
-                       @click="updateSelectConfig" placeholder="请选择项目"
-                       >
+              <div class="weui-cell__hd"><label class="weui-label">项目</label></div>
+              <div class="weui-cell__bd">
+                <input class="weui-input" id="signSelect" type="text" placeholder="请选择项目" readonly
+                       :value="sign.name" @click.stop="setSignSelect">
               </div>
             </div>
 
@@ -45,6 +44,37 @@
               <div class="weui-cell__bd">
                 <textarea class="weui-textarea" placeholder="请输入备注" rows="3" v-model="sign.remark" maxlength="200"></textarea>
                 <div class="weui-textarea-counter"><span>{{sign.remark.length}}</span>/200</div>
+              </div>
+            </div>
+          </div>
+
+          <div id="signPopup" class="weui-popup__container popup-bottom">
+            <div class="weui-popup__overlay close-popup"></div>
+            <div class="weui-popup__modal count-select">
+              <div class="toolbar">
+                <div class="toolbar-inner">
+                  <a href="javascript:;" class="picker-button close-popup">关闭</a>
+                  <h1 class="title">选择项目</h1>
+                </div>
+              </div>
+              <div class="modal-content">
+                <div class="weui-grids ">
+                  <div class="weui-cells weui-cells_radio">
+                    <div class="weui-loadmore weui-loadmore_line close-popup" v-if="list.length === 0">
+                      <span class="weui-loadmore__tips">暂无数据</span>
+                    </div>
+                    <label class="weui-cell weui-check__label close-popup" v-for="(item, index) in list"
+                           @click="okSignProject(item)">
+                      <div class="weui-cell__bd" style="text-align: center">
+                        <p>{{item.name}}</p>
+                      </div>
+                      <div class="weui-cell__ft">
+                        <input type="radio" class="weui-check" name="signRadio" :checked="item.id === sign.projectId">
+                        <span class="weui-icon-checked"></span>
+                      </div>
+                    </label>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -75,7 +105,8 @@
                         <div class="weui-cell__bd">
                           <p>{{item.name}}</p>
                         </div>
-                        <div class="weui-cell__ft">向左滑动玩玩</div>
+                        <div class="weui-cell__ft">
+                        </div>
                       </div>
                     </div>
                     <div class="weui-cell__ft">
@@ -92,7 +123,14 @@
 
         <div id="count" class="weui-tab__bd-item">
 
-          <div class="weui-cells weui-cells_form">
+          <div class="weui-flex">
+            <div class="weui-flex__item user-item">
+              <span>欢迎您° (๑´ڡ`๑) 【{{(userName == null || userName == '') ? userCode : userName}}】</span>
+              <img src="../assets/images/exit.png" class="out-img" @click="out">
+            </div>
+          </div>
+
+          <div class="weui-cells weui-cells_form count-list">
             <div class="weui-cell">
               <div class="weui-cell__hd"><label for="queryProject" class="weui-label">项目</label></div>
               <div class="weui-cell__bd">
@@ -230,6 +268,8 @@
     components: {FlipTime},
     data() {
       return {
+        userCode: '',
+        userName: '',
         signDesc: 'Sign',
         showSign: false,
         canSign: false,
@@ -245,6 +285,7 @@
         },
         sign: {
           projectId: null,
+          name: null,
           startDate: null,
           endDate: null,
           remark: ''
@@ -287,9 +328,38 @@
     },
     methods: {
       init() {
+        this.initUser();
         this.initDate();
         this.initSelect();
         this.initAllSelect();
+        this.initSignSelect();
+      },
+      initSignSelect() {
+
+      },
+      setSignSelect() {
+        let vm = this;
+        $("#signPopup").popup();
+        vm.axios.get('/sign-center/api/project/all')
+          .then(res => {
+            if (res.data.status === 200) {
+              vm.list = res.data.data;
+            }
+          });
+      },
+      okSignProject(project) {
+        this.sign.projectId = project.id;
+        this.sign.name = project.name;
+      },
+      initUser() {
+        let vm = this;
+        vm.axios.get("/sign-center/api/user/login/judge")
+          .then(res => {
+            if (res.data.status === 200 && res.data.data.login) {
+              vm.userCode = res.data.data.userCode;
+              vm.userName = res.data.data.userName;
+            }
+          })
       },
       initDate() {
         let vm = this;
@@ -349,29 +419,6 @@
           });
 
       },
-      updateSelectConfig() {
-        let vm = this;
-        vm.axios.get('/sign-center/api/project/all')
-          .then(res => {
-            if (res.data.status === 200) {
-              vm.list = res.data.data;
-              return vm.projectListToNames(res.data.data);
-            }
-          })
-          .then(names => {
-            // 初始化签到选择
-            if (names === null || names.length === 0) {
-              names = ["暂无项目"];
-            }
-            // $("#signProject").picker("setValue", names);
-            $("#signProject").picker("setValue", ["2012", "12", "12"]);
-          })
-          .catch(error => {
-            console.log(error);
-            let names = ["暂无项目"];
-            $("#signProject").picker("setValue", names);
-          });
-      },
       initAllSelect() {
         let vm = this;
         // 纪录中的多选
@@ -406,7 +453,7 @@
       },
       projectListToNames(list) {
         let names = [];
-        if (list !== undefined && list != null && list.length > 0) {
+        if (list && list.length && list.length > 0) {
           list.forEach(project => {
             names.push(project.name)
           })
@@ -690,4 +737,22 @@
     position: fixed;
     bottom: 0;
   }
+
+  .out-img {
+    width: 25px;
+    float: right;
+    cursor: pointer;
+  }
+
+  .count-list {
+    margin-top: 0;
+  }
+  .user-item {
+    margin: 5px 15px;
+  }
+
+  .user-item span {
+    float: left;
+  }
+
 </style>

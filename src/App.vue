@@ -18,7 +18,7 @@ export default {
   },
   watch: {
     '$route' (to, form) {
-      if (to.path == '/') {
+      if (to.path == '/login') {
         this.transitionName = 'slide-right'
       } else {
         this.transitionName = 'slide-left'
@@ -28,9 +28,9 @@ export default {
 }
 </script>
 
-<style>
+<style scoped>
 
-  @import "./assets/flipcountdown/jquery.flipcountdown.css";
+
 
 .child-view {
   position: absolute;
@@ -59,4 +59,5 @@ export default {
     font-weight: 400;
     margin: 0 15%;
   }
+
 </style>

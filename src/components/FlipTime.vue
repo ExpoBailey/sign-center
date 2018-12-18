@@ -18,3 +18,7 @@
     }
   }
 </script>
+
+<style>
+  @import "../assets/flipcountdown/jquery.flipcountdown.css";
+</style>

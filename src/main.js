@@ -14,26 +14,6 @@ Vue.config.productionTip = false
 
 $.toast.prototype.defaults.duration = 1000
 
-Vue.use(weui);
-// Vue.use($);
-Vue.prototype.axios = axios;
-
-
-Vue.filter('restrictLength', function (value, length) {
-  if (value != null && length >= 0 && value.length > length) {
-    return value.substring(0, length) + "...";
-  }
-  return value;
-});
-
-/* eslint-disable no-new */
-new Vue({
-  el: '#app',
-  router,
-  components: { App },
-  template: '<App/>'
-})
-
 axios.interceptors.response.use(res => {
   if (res.data != null) {
     switch (res.status) {
@@ -63,3 +43,24 @@ axios.interceptors.response.use(res => {
     return res;
   }
 });
+
+
+Vue.use(weui);
+Vue.prototype.axios = axios;
+
+
+Vue.filter('restrictLength', function (value, length) {
+  if (value != null && length >= 0 && value.length > length) {
+    return value.substring(0, length) + "...";
+  }
+  return value;
+});
+
+/* eslint-disable no-new */
+new Vue({
+  el: '#app',
+  router,
+  components: { App },
+  template: '<App/>'
+})
+
