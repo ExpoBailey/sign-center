@@ -18,20 +18,29 @@
                         @after-enter="canSign = true"
                         @before-leave="canSign = false">
               <div class="weui-btn-area" v-show="showSign">
-                <div class="sign-btn sign-height" @click="submitSignProject">{{signDesc}}</div>
+                <div class="sign-btn sign-height" @click="submitSignProject">
+                  <img src="../assets/images/hand-fed8f5.png">
+                </div>
               </div>
             </transition>
           </div>
 
-          <div class="weui-cells weui-cells_form">
+          <div class="weui-cells">
 
-            <div class="weui-cell">
-              <div class="weui-cell__hd"><label class="weui-label">项目</label></div>
+            <!--<div class="weui-cell">-->
+              <!--<div class="weui-cell__hd"><label class="weui-label">项目</label></div>-->
+              <!--<div class="weui-cell__bd">-->
+                <!--<input class="weui-input" id="signSelect" type="text" placeholder="请选择项目" readonly-->
+                       <!--:value="sign.name" >-->
+              <!--</div>-->
+            <!--</div>-->
+
+            <a class="weui-cell weui-cell_access" href="javascript:;" @click.stop="setSignSelect">
               <div class="weui-cell__bd">
-                <input class="weui-input" id="signSelect" type="text" placeholder="请选择项目" readonly
-                       :value="sign.name" @click.stop="setSignSelect">
+                <p>项目</p>
               </div>
-            </div>
+              <div class="weui-cell__ft">{{sign.name == null || sign.name == '' ? '请选择项目' : sign.name}}</div>
+            </a>
 
             <div class="weui-cell weui-cell_switch">
               <div class="weui-cell__bd">备注</div>
@@ -82,7 +91,7 @@
         </div>
 
         <div id="list" class="weui-tab__bd-item">
-          <div class="weui-panel">
+          <div class="weui-panel list-panel">
             <div class="weui-panel__hd">
               <span>我的项目</span>
               <a @click="promptSave(-1)" class="weui-btn weui-btn_mini weui-btn_primary right-header">添加项目</a>
@@ -130,14 +139,22 @@
             </div>
           </div>
 
-          <div class="weui-cells weui-cells_form count-list">
-            <div class="weui-cell">
-              <div class="weui-cell__hd"><label for="queryProject" class="weui-label">项目</label></div>
+          <div class="weui-cells count-list">
+            <!--<div class="weui-cell">-->
+              <!--<div class="weui-cell__hd"><label for="queryProject" class="weui-label">项目</label></div>-->
+              <!--<div class="weui-cell__bd">-->
+                <!--<input class="weui-input" id="queryProject" type="text" placeholder="所有项目" readonly-->
+                       <!--:value="querySelectName" @click="setCountSelect">-->
+              <!--</div>-->
+            <!--</div>-->
+
+            <a class="weui-cell weui-cell_access" href="javascript:;" @click="setCountSelect">
               <div class="weui-cell__bd">
-                <input class="weui-input" id="queryProject" type="text" placeholder="所有项目" readonly
-                       :value="querySelectName" @click="setCountSelect">
+                <p>项目</p>
               </div>
-            </div>
+              <div class="weui-cell__ft">{{querySelectName == null || querySelectName == '' ? '所有项目' : querySelectName}}</div>
+            </a>
+
             <div class="weui-cell">
               <div class="weui-cell__hd"><label for="startDate" class="weui-label">开始日期</label></div>
               <div class="weui-cell__bd">
@@ -707,6 +724,17 @@
     border-radius: 50%;
     cursor: pointer;
     opacity: 1;
+    position: relative;
+  }
+
+  .sign-btn img {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 60%;
+    margin: auto;
   }
 
   .sign-height {
@@ -730,12 +758,18 @@
   }
 
   .count-select {
-    max-height: 50%;
+    /*max-height: 50%;*/
+    height: 50%;
+    background: #fff;
     display: flex;
     width: 100%;
     flex-direction: column;
     position: fixed;
     bottom: 0;
+  }
+
+  .popup-bottom .weui-popup__modal {
+    height: 50%;
   }
 
   .out-img {
@@ -755,4 +789,11 @@
     float: left;
   }
 
+  .weui-cells_checkbox .weui-check:checked+.weui-icon-checked:before{
+    content: url("../assets/images/chong-20.png");
+  }
+
+  .weui-cells_radio .weui-check:checked + .weui-icon-checked:before {
+    content: url("../assets/images/chong-20.png");
+  }
 </style>
