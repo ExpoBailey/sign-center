@@ -14,6 +14,7 @@
       }
     },
     mounted() {
+      console.log(flipcount)
       $('#retroclockbox1').flipcountdown();
     }
   }

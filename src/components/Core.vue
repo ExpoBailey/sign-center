@@ -27,14 +27,6 @@
 
           <div class="weui-cells">
 
-            <!--<div class="weui-cell">-->
-              <!--<div class="weui-cell__hd"><label class="weui-label">项目</label></div>-->
-              <!--<div class="weui-cell__bd">-->
-                <!--<input class="weui-input" id="signSelect" type="text" placeholder="请选择项目" readonly-->
-                       <!--:value="sign.name" >-->
-              <!--</div>-->
-            <!--</div>-->
-
             <a class="weui-cell weui-cell_access" href="javascript:;" @click.stop="setSignSelect">
               <div class="weui-cell__bd">
                 <p>项目</p>
@@ -108,9 +100,9 @@
                 </div>
 
                 <div class="weui-cells" v-if="list.length > 0">
-                  <div class="weui-cell weui-cell_swiped swipeout-touching" v-for="(item, index) in list">
-                    <div class="weui-cell__bd" style="transform: translate3d(0px, 0px, 0px);">
-                      <div class="weui-cell">
+                  <div class="weui-cell weui-cell_swiped swipeout-touching project-cell" v-for="(item, index) in list">
+                    <div class="weui-cell__bd project-cell-bd" style="transform: translate3d(0px, 0px, 0px);">
+                      <div class="weui-cell project-cell-front">
                         <div class="weui-cell__bd">
                           <p>{{item.name}}</p>
                         </div>
@@ -173,45 +165,25 @@
 
           <!--<a @click="out" class="weui-btn weui-btn_primary">退出</a>-->
 
-          <div class="weui-cells__title">我的纪录</div>
-          <div class="weui-loadmore weui-loadmore_line" v-if="signInfoList.length === 0">
-            <span class="weui-loadmore__tips">暂无数据</span>
+          <div class="weui-cells__title">
+            我的纪录
+            <!--<img src="../assets/images/list.png" class="view-img" v-if="countView != 0" @click="cutView(0)">-->
+            <img src="../assets/images/calendar.png" class="view-img" @click="cutView(1)">
           </div>
-          <div class="weui-cells">
-            <div class="weui-cell" v-for="(item, index) in signInfoList">
-              <div class="weui-cell__bd">
-                <p>{{item.project.name | restrictLength(5)}}</p>
+
+          <count-list v-bind:list="signInfoList"></count-list>
+
+          <div id="calendarPopup" class="weui-popup__container">
+            <div class="weui-popup__overlay"></div>
+            <div class="weui-popup__modal calendar-model">
+              <calendar-show v-bind:list="signInfoList" v-if="countView == 1"></calendar-show>
+              <div class="model-btns">
+                <a href="javascript:;" class="weui-btn weui-btn_primary close-popup " @click="countView = 0">关闭</a>
               </div>
-              <div class="weui-cell__hd" v-if="item.remark != ''" @click="clickInfoShowRemark(item)">
-                <img src="../assets/images/remark.png" style="width:20px;margin-right:5px;display:block">
-              </div>
-              <div class="weui-cell__ft">{{item.startDate}}</div>
             </div>
           </div>
 
-          <div id="infoRemark" class="weui-popup__container popup-bottom">
-            <div class="weui-popup__overlay"></div>
-            <div class="weui-popup__modal">
-              <div class="toolbar">
-                <div class="toolbar-inner">
-                  <a href="javascript:;" class="picker-button close-popup">关闭</a>
-                  <h1 class="title">【{{popupTitle}}】纪录的备注</h1>
-                </div>
-              </div>
-              <div class="modal-content">
-                <div class="weui-grids">
-                  <div class="weui-cells weui-cells_form">
-                    <div class="weui-cell">
-                      <div class="weui-cell__bd">
-                        <textarea class="weui-textarea" :value="popupRemark" rows="3" readonly></textarea>
-                        <div class="weui-textarea-counter"><span>不可修改</span></div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+
 
           <!-- 多选的下弹 -->
           <div id="countPopup" class="weui-popup__container popup-bottom">
@@ -279,10 +251,16 @@
 <script>
   import FlipTime from "./FlipTime";
   import Utils from "../utils"
+  import CountList from "./CountList"
+  import CalendarShow from "./CalendarShow"
 
   export default {
     name: 'core',
-    components: {FlipTime},
+    components: {
+      FlipTime,
+      CountList,
+      CalendarShow
+    },
     data() {
       return {
         userCode: '',
@@ -317,7 +295,8 @@
         tempProjectIds:[],
         signInfoList: [],
         popupTitle: '',
-        popupRemark: ''
+        popupRemark: '',
+        countView: 0,
       }
     },
     computed: {
@@ -331,12 +310,12 @@
           }
         });
         return names.join(", ");
-      }
+      },
     },
     mounted() {
       this.showSign = true;
       this.nowDateStr = new Date().toDateString();
-      this.query.startDate = Utils.getTodayString();
+      this.query.startDate = '2019-01-01';
       this.query.endDate = Utils.getTodayString();
       this.init();
     },
@@ -382,6 +361,7 @@
         let vm = this;
         $("#startDate").calendar({
           dateFormat: 'yyyy-mm-dd',
+          value: [vm.query.startDate],
           onChange: vm.changeStartDate
         });
         $("#endDate").calendar({
@@ -683,11 +663,10 @@
           })
       },
 
-      clickInfoShowRemark(info) {
+      cutView(num) {
         let vm = this;
-        vm.popupTitle = info.project.name;
-        vm.popupRemark = info.remark;
-        $("#infoRemark").popup();
+        vm.countView = num;
+        $("#calendarPopup").popup();
       }
 
     }
@@ -778,6 +757,12 @@
     cursor: pointer;
   }
 
+  .view-img {
+    width: 25px;
+    float: right;
+    cursor: pointer;
+  }
+
   .count-list {
     margin-top: 0;
   }
@@ -795,5 +780,58 @@
 
   .weui-cells_radio .weui-check:checked + .weui-icon-checked:before {
     content: url("../assets/images/chong-20.png");
+  }
+
+  /*.weui-cell {*/
+    /*padding: 1em 15px;*/
+  /*}*/
+
+  /*weui-cell_swiped {*/
+    /*height: 3em;*/
+    /*margin: auto;*/
+    /*align-content: center;*/
+    /*left: 0;*/
+    /*top: 0;*/
+    /*right: 0;*/
+    /*bottom: 0;*/
+    /*display: flex;*/
+  /*}*/
+
+  .project-cell {
+    display: flex;
+    align-content: center;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    margin: auto;
+  }
+
+  .project-cell-front {
+    padding: 1em 15px;
+  }
+
+  .weui-swiped-btn {
+    padding: 1em;
+  }
+
+</style>
+
+<style>
+  .weui-popup__modal .toolbar {
+    position: relative;
+    width: 100%;
+    font-size: .85rem;
+    line-height: 1.5;
+    color: #3d4145;
+    background: #f7f7f8;
+  }
+
+  .calendar-model {
+    background-color: #fff;
+  }
+
+  .model-btns {
+    margin: 2em 1em;
   }
 </style>
