@@ -46,7 +46,6 @@ axios.interceptors.response.use(res => {
   }
 });
 
-
 Vue.use(weui);
 Vue.use(VCalendar, {
   firstDayOfWeek: 2

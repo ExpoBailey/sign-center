@@ -176,7 +176,8 @@
           <div id="calendarPopup" class="weui-popup__container">
             <div class="weui-popup__overlay"></div>
             <div class="weui-popup__modal calendar-model">
-              <calendar-show v-bind:list="signInfoList" v-if="countView == 1"></calendar-show>
+              <!--<calendar-show v-bind:list="signInfoList" v-if="countView == 1"></calendar-show>-->
+              <full-calendar v-bind:list="signInfoList" v-if="countView == 1"></full-calendar>
               <div class="model-btns">
                 <a href="javascript:;" class="weui-btn weui-btn_primary close-popup " @click="countView = 0">关闭</a>
               </div>
@@ -253,13 +254,15 @@
   import Utils from "../utils"
   import CountList from "./CountList"
   import CalendarShow from "./CalendarShow"
+  import FullCalendar from "./FullCalendar/FullCalendar"
 
   export default {
     name: 'core',
     components: {
       FlipTime,
       CountList,
-      CalendarShow
+      CalendarShow,
+      FullCalendar
     },
     data() {
       return {
