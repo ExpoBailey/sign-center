@@ -78,4 +78,13 @@
   .weui-cells {
     margin-top: 0.5em;
   }
+
+
+  .popup-bottom .weui-popup__modal .modal-content {
+    padding-top: 0;
+  }
+
+  .popup-bottom .weui-cells {
+    margin-top: 0;
+  }
 </style>

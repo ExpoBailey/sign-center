@@ -174,13 +174,18 @@
           <count-list v-bind:list="signInfoList"></count-list>
 
           <div id="calendarPopup" class="weui-popup__container">
-            <div class="weui-popup__overlay"></div>
-            <div class="weui-popup__modal calendar-model">
+            <div class="weui-popup__overlay "></div>
+            <div class="weui-popup__modal calendar-model ">
               <!--<calendar-show v-bind:list="signInfoList" v-if="countView == 1"></calendar-show>-->
-              <full-calendar v-bind:list="signInfoList" v-if="countView == 1"></full-calendar>
-              <div class="model-btns">
-                <a href="javascript:;" class="weui-btn weui-btn_primary close-popup " @click="countView = 0">关闭</a>
+              <!--<full-calendar v-bind:list="signInfoList" v-if="countView == 1"></full-calendar>-->
+              <sign-calendar v-bind:list="signInfoList" v-if="countView == 1" class="c-popup"></sign-calendar>
+
+              <div class="bottom-btn">
+                    <a href="javascript:;" class="weui-btn weui-btn_primary close-popup btn-pos"
+                       @click="countView = 0">关闭
+                    </a>
               </div>
+
             </div>
           </div>
 
@@ -253,16 +258,14 @@
   import FlipTime from "./FlipTime";
   import Utils from "../utils"
   import CountList from "./CountList"
-  import CalendarShow from "./CalendarShow"
-  import FullCalendar from "./FullCalendar/FullCalendar"
+  import SignCalendar from "./SignCalendar/SignCalendar"
 
   export default {
     name: 'core',
     components: {
       FlipTime,
       CountList,
-      CalendarShow,
-      FullCalendar
+      SignCalendar
     },
     data() {
       return {
@@ -754,6 +757,10 @@
     height: 50%;
   }
 
+  .popup-bottom .weui-popup__modal .modal-content {
+    padding-top: 0;
+  }
+
   .out-img {
     width: 25px;
     float: right;
@@ -835,6 +842,19 @@
   }
 
   .model-btns {
-    margin: 2em 1em;
+    margin: auto;
+    bottom: 0;
+    position: absolute;
+    display: flex;
+    width: 100%;
+    z-index: 10000;
+  }
+  .bottom-btn {
+    /*width: 100%;*/
+    z-index: 10000;
+    margin: 1em 1em;
+  }
+
+  .btn-pos{
   }
 </style>
