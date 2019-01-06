@@ -757,10 +757,6 @@
     height: 50%;
   }
 
-  .popup-bottom .weui-popup__modal .modal-content {
-    padding-top: 0;
-  }
-
   .out-img {
     width: 25px;
     float: right;
