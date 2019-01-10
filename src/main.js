@@ -9,8 +9,6 @@ import 'animate.css/animate.min.css'
 import 'jquery-weui/dist/css/jquery-weui.css'
 import 'jquery-weui/dist/js/jquery-weui.js'
 import axios from 'axios'
-import VCalendar from 'v-calendar'
-import 'v-calendar/lib/v-calendar.min.css'
 
 Vue.config.productionTip = false
 
@@ -47,9 +45,6 @@ axios.interceptors.response.use(res => {
 });
 
 Vue.use(weui);
-Vue.use(VCalendar, {
-  firstDayOfWeek: 2
-});
 Vue.prototype.axios = axios;
 
 

@@ -14,7 +14,7 @@
         <div class="weui-loadmore weui-loadmore_line close-popup" v-if="timeDateList.length === 0">
           <span class="weui-loadmore__tips">暂无打卡</span>
         </div>
-        <timeline-item bg-color="#9dd8e0" v-for="(item, index) in timeDateList">
+        <timeline-item bg-color="#9dd8e0" v-for="(item, index) in timeDateList" :key="index">
 
           <div class="weui-flex">
             <div >{{item.time}}</div>
@@ -53,7 +53,7 @@
     },
     watch: {
       list: {
-        handler(newValue, oldValue) {
+        handler (newValue, oldValue) {
           this.signInfoList = newValue
         },
         deep: true
@@ -138,12 +138,29 @@
 </script>
 <style scoped>
 
-  .wh_content_all{
-    background-color: #F6F2E9;
+  .wh_container >>> .wh_content_all {
+    background-color: #FFFAF0;
   }
 
-  .wh_top_changge {
+  .wh_container >>> .wh_content_item {
+    color: black;
+  }
+
+  .wh_container >>> .wh_top_changge {
     background-color: #1AAD19;
+  }
+
+  .wh_container >>> .wh_content_item .wh_isToday {
+    background-color: #DBDDE0;
+  }
+
+  .wh_container >>> .wh_content_item .wh_chose_day {
+    background-color: #df8449;
+    color: #fff;
+  }
+
+  .wh_container >>> .wh_top_tag {
+    font-weight: bold;
   }
 
   .wh_content_item .wh_content_item_tag {
@@ -155,12 +172,9 @@
   }
 
   .wh_container >>> .mark1 {
-    background-color: orange;
+    background-color: #3696F0;
     border-radius: 50%;
-  }
-  .wh_item_date .wh_isToday {
-    background-color: #9B9A9A;
-    border-radius: 100px;
+    color: #fff;
   }
 
   .timeline-item {

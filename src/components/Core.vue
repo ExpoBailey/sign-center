@@ -472,10 +472,8 @@
         return id;
       },
       selectChange(name) {
-        console.log("改变为：" + name);
       },
       selectClose(name) {
-        console.log("关闭时：" + name);
         $.closePicker()
       },
       clickTab(index) {
@@ -753,7 +751,7 @@
     bottom: 0;
   }
 
-  .popup-bottom .weui-popup__modal {
+  .popup-bottom .count-select {
     height: 50%;
   }
 
@@ -788,21 +786,6 @@
     content: url("../assets/images/chong-20.png");
   }
 
-  /*.weui-cell {*/
-    /*padding: 1em 15px;*/
-  /*}*/
-
-  /*weui-cell_swiped {*/
-    /*height: 3em;*/
-    /*margin: auto;*/
-    /*align-content: center;*/
-    /*left: 0;*/
-    /*top: 0;*/
-    /*right: 0;*/
-    /*bottom: 0;*/
-    /*display: flex;*/
-  /*}*/
-
   .project-cell {
     display: flex;
     align-content: center;
@@ -821,17 +804,14 @@
     padding: 1em;
   }
 
-</style>
-
-<style>
-  .weui-popup__modal .toolbar {
-    position: relative;
-    width: 100%;
-    font-size: .85rem;
-    line-height: 1.5;
-    color: #3d4145;
-    background: #f7f7f8;
-  }
+  /*.weui-popup__modal .toolbar {*/
+    /*position: relative;*/
+    /*width: 100%;*/
+    /*font-size: .85rem;*/
+    /*line-height: 1.5;*/
+    /*color: #3d4145;*/
+    /*background: #f7f7f8;*/
+  /*}*/
 
   .calendar-model {
     background-color: #fff;
@@ -845,12 +825,10 @@
     width: 100%;
     z-index: 10000;
   }
+
   .bottom-btn {
     /*width: 100%;*/
     z-index: 10000;
     margin: 1em 1em;
-  }
-
-  .btn-pos{
   }
 </style>
