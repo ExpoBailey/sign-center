@@ -6,12 +6,48 @@
 
         <div id="sign" class="weui-tab__bd-item weui-tab__bd-item--active">
 
-          <div class="demos-header date-div">
-            <flip-time></flip-time>
-            <div class="date-span">
-              <span>{{ nowDateStr }}</span>
-            </div>
+          <div class="header-height">
+            <transition enter-active-class="animated zoomInUp fast"
+                        leave-active-class="animated hinge"
+                        @after-leave="showPatch = true">
+                <div class="demos-header date-div" v-show="showFlip">
+                  <flip-time></flip-time>
+                  <div class="date-span">
+                    <span>{{ nowDateStr }}</span>
+                  </div>
+                </div>
+
+            </transition>
+            <transition enter-active-class="animated flipInY fast"
+                        leave-active-class="animated rotateOutUpRight fast"
+                        @after-leave="showFlip = true">
+              <div class="demos-header date-div" v-show="showPatch">
+                <van-datetime-picker
+                  class="patch-date"
+                  v-model="patch.currentDate"
+                  type="date"
+                  :min-date="patch.minDate"
+                  :max-date="patch.maxDate"
+                  :visible-item-count="patch.count"
+                  @change="dateChange"
+                />
+                <van-datetime-picker
+                  class="patch-time"
+                  v-model="patch.currentTime"
+                  type="time"
+                  :visible-item-count="patch.count"
+                  @change="timeChange"
+                />
+              </div>
+            </transition>
           </div>
+
+
+          <div class="patch-tag">
+            <van-tag plain v-if="!patchTag" @click.native="showPatchTag">补卡</van-tag>
+            <van-tag type="primary" v-else @click.native="showFlipTag">补卡</van-tag>
+          </div>
+
           <div class="weui-btn-area sign-height">
             <transition enter-active-class="animated bounceIn"
                         leave-active-class="animated bounceOut"
@@ -303,6 +339,18 @@
         popupTitle: '',
         popupRemark: '',
         countView: 0,
+        patchTag: false,
+        showFlip: true,
+        showPatch: false,
+        showPatchDate: false,
+        patch: {
+          minDate: new Date(2019, 0, 1),
+          maxDate: new Date(),
+          count: 1,
+          currentDate: new Date(),
+          currentDateStr: Utils.getTodayString(),
+          currentTime: "12:30"
+        }
       }
     },
     computed: {
@@ -476,6 +524,7 @@
       selectClose(name) {
         $.closePicker()
       },
+
       clickTab(index) {
         let vm = this;
         this.tabIndex = index;
@@ -501,7 +550,17 @@
           $.toptip('请先选择项目', 'error');
           return
         }
-        vm.sign.startDate = Utils.getNowStringDate();
+
+        // 判断是补卡还是正常打卡
+        if (vm.patchTag) {
+          console.log(vm.patch.currentDate)
+          vm.sign.startDate = vm.patch.currentDateStr + " " + vm.patch.currentTime + ":00";
+          console.log(vm.sign.startDate)
+          vm.sign.status = 1
+        } else {
+          vm.sign.startDate = Utils.getNowStringDate();
+        }
+
         vm.sign.endDate = '';
         vm.showSign = false;
 
@@ -533,6 +592,7 @@
           vm.listWait = false;
         })
       },
+
       promptSave(index) {
         let vm = this;
         let addFlag = false;
@@ -579,6 +639,7 @@
 
         $('.weui-cell_swiped').swipeout('close');
       },
+
       addProject(name) {
         let vm = this;
         vm.project.name = name;
@@ -590,6 +651,7 @@
             vm.findAllProject();
           })
       },
+
       updateProject(id, name) {
         let vm = this;
         vm.project.id = id;
@@ -605,6 +667,7 @@
             $('.weui-cell_swiped').swipeout('close');
           })
       },
+
       deleteProject(index) {
         let vm = this;
         let project = vm.list[index];
@@ -671,12 +734,64 @@
         let vm = this;
         vm.countView = num;
         $("#calendarPopup").popup();
-      }
+      },
+
+      showPatchTag() {
+        this.showFlip = false;
+        this.patchTag = true;
+      },
+
+      showFlipTag() {
+        this.showPatch = false;
+        this.patchTag = false;
+      },
+
+      dateChange(picker) {
+        console.log(picker.getValues());
+        let vm = this;
+        let values = picker.getValues();
+        vm.patch.currentDateStr = values.join("-")
+        console.log(vm.patch.currentDateStr);
+      },
+
+      timeChange(picker) {
+        console.log(picker.getValues());
+        this.patch.currentTime = picker.getValues().join(":")
+      },
 
     }
   }
 </script>
 <style scoped>
+
+  .patch-date {
+    margin-bottom: 10px;
+  } >>> .van-picker__toolbar {
+    display: none;
+  }
+    >>> .van-picker-column__item {
+      color: #1C1C1C;
+      font-weight: bold;
+      font-size: 30px;
+      font-family: Helvetica, 'Hiragino Sans GB', 'Microsoft Yahei', '微软雅黑', Arial, sans-serif;
+    }
+
+  .patch-time {
+    width: 70%;
+    margin: auto;
+  } >>> .van-picker__toolbar {
+    display: none;
+  }
+
+  .header-height {
+    height: 7.5em;
+    margin: 1em 1em;
+  }
+
+  .patch-tag {
+    padding-right: 16px;
+    float: right;
+  }
 
   .tab_box {
     margin-bottom: 4em;
@@ -728,8 +843,7 @@
 
   .date-div {
     text-align: center;
-    border: 1px #D3D3D3 solid;
-    margin: 1em 1em;
+    border: 1px #FFE4B5 solid;
     border-radius: 3px;
     padding: 16px 0;
   }

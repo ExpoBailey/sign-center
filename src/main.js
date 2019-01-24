@@ -9,6 +9,9 @@ import 'animate.css/animate.min.css'
 import 'jquery-weui/dist/css/jquery-weui.css'
 import 'jquery-weui/dist/js/jquery-weui.js'
 import axios from 'axios'
+import Vant from 'vant';
+import 'vant/lib/index.css';
+
 
 Vue.config.productionTip = false
 
@@ -45,6 +48,7 @@ axios.interceptors.response.use(res => {
 });
 
 Vue.use(weui);
+Vue.use(Vant);
 Vue.prototype.axios = axios;
 
 
