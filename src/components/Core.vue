@@ -201,20 +201,24 @@
 
           <!--<a @click="out" class="weui-btn weui-btn_primary">退出</a>-->
 
-          <div class="weui-cells__title">
+          <div class="weui-cells__title count-title">
             我的纪录
             <!--<img src="../assets/images/list.png" class="view-img" v-if="countView != 0" @click="cutView(0)">-->
             <img src="../assets/images/calendar.png" class="view-img" @click="cutView(1)">
           </div>
 
-          <count-list v-bind:list="signInfoList"></count-list>
+          <count-list v-bind:startDate="query.startDate"
+                      v-bind:endDate="query.endDate"
+                      v-bind:sortFlag="query.sortFlag"
+                      v-bind:projectIds="query.projectIds"
+                      v-bind:refresh="query.refresh"></count-list>
 
           <div id="calendarPopup" class="weui-popup__container">
             <div class="weui-popup__overlay "></div>
             <div class="weui-popup__modal calendar-model ">
               <!--<calendar-show v-bind:list="signInfoList" v-if="countView == 1"></calendar-show>-->
               <!--<full-calendar v-bind:list="signInfoList" v-if="countView == 1"></full-calendar>-->
-              <sign-calendar v-bind:list="signInfoList" v-if="countView == 1" class="c-popup"></sign-calendar>
+              <sign-calendar v-bind:projectIds="query.projectIds" v-if="countView == 1" class="c-popup"></sign-calendar>
 
               <div class="bottom-btn">
                     <a href="javascript:;" class="weui-btn weui-btn_primary close-popup btn-pos"
@@ -331,8 +335,9 @@
           projectId: null,
           startDate: null,
           endDate: null,
-          sortFlag: 1,
-          projectIds:[]
+          sortFlag: 0,
+          projectIds:[],
+          refresh: true
         },
         tempProjectIds:[],
         signInfoList: [],
@@ -381,7 +386,6 @@
         this.initUser();
         this.initDate();
         this.initSelect();
-        this.initAllSelect();
         this.initSignSelect();
       },
       initSignSelect() {
@@ -470,11 +474,6 @@
           });
 
       },
-      initAllSelect() {
-        let vm = this;
-        // 纪录中的多选
-
-      },
       setCountSelect() {
         let vm = this;
         vm.tempProjectIds = vm.query.projectIds;
@@ -490,17 +489,14 @@
         let vm = this;
         vm.query.projectIds = vm.tempProjectIds;
         vm.tempProjectIds = [];
-        vm.findSignAll(vm.query.projectIds, vm.query.startDate, vm.query.endDate);
       },
       changeStartDate(p, values, displayValues) {
         let vm = this;
         vm.query.startDate = values[0];
-        vm.findSignAll(vm.query.projectId, vm.query.startDate, vm.query.endDate);
       },
       changeEndDate(p, values, displayValues) {
         let vm = this;
         vm.query.endDate = values[0];
-        vm.findSignAll(vm.query.projectId, vm.query.startDate, vm.query.endDate);
       },
       projectListToNames(list) {
         let names = [];
@@ -535,7 +531,7 @@
             this.findAllProject();
             break;
           case 3:
-            vm.findSignAll(vm.query.projectId, vm.query.startDate, vm.query.endDate);
+            vm.query.refresh = !vm.query.refresh;
             break;
           default:
         }
@@ -553,9 +549,7 @@
 
         // 判断是补卡还是正常打卡
         if (vm.patchTag) {
-          console.log(vm.patch.currentDate)
           vm.sign.startDate = vm.patch.currentDateStr + " " + vm.patch.currentTime + ":00";
-          console.log(vm.sign.startDate)
           vm.sign.status = 1
         } else {
           vm.sign.startDate = Utils.getNowStringDate();
@@ -944,5 +938,10 @@
     /*width: 100%;*/
     z-index: 10000;
     margin: 1em 1em;
+  }
+
+  .count-title {
+    padding-top: .77em;
+    margin-top: 0;
   }
 </style>

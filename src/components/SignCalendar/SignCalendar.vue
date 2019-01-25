@@ -35,7 +35,10 @@
   import { Timeline, TimelineItem, TimelineTitle } from 'vue-cute-timeline'
   export default {
     props: {
-      list: Array
+      projectIds: {
+        type: Array,
+        default: []
+      }
     },
     components: {
       Calendar,
@@ -47,29 +50,33 @@
       return {
         arr: [],
         signInfoList: this.list,
+        dateList: [],
         daySignInfoList: [],
-        selectDay: ''
+        selectDay: '',
       }
     },
     watch: {
-      list: {
-        handler (newValue, oldValue) {
-          this.signInfoList = newValue
-        },
-        deep: true
-      }
     },
     computed: {
       markDateList() {
-        let dateList = [];
+        let dates = [];
         let vm = this;
-        vm.signInfoList.forEach(signInfo => {
+        let num = 6;
+        if (vm.projectIds.length > 0) {
+          let sum = 0;
+          vm.projectIds.forEach(id => {
+            sum += id;
+          });
+          num = sum % 6
+        }
+        console.log(num)
+        vm.dateList.forEach(date => {
           let obj = {};
-          obj.date = signInfo.startDate;
-          obj.className = "mark1";
-          dateList.push(obj);
+          obj.date = date;
+          obj.className = "mark" + num;
+          dates.push(obj);
         });
-        return dateList;
+        return dates;
       },
       timeDateList() {
         let list = [];
@@ -88,22 +95,26 @@
       }
     },
     mounted() {
+      this.countDateList(this.projectIds);
       this.selectDay = Utils.getTodayString();
       this.clickDay(this.selectDay)
     },
     methods: {
+
       clickDay(date) {
         let day = Utils.changeStandardDate(date).split(" ")[0];
         this.selectDay = day;
-        this.findSignAll(null, day, day)
+        this.findSignAll(this.projectIds, day, day)
       },
+
       openRemark(remark) {
         $.toast(remark, "text");
       },
+
       findSignAll(projectIds, startDate, endDate, sortFlag = 0) {
         let vm = this;
         // 开始、结束时间相同，查当天记录
-        if (startDate === endDate) {
+        if (startDate === endDate !== null) {
           if (startDate == null) {
             startDate = endDate = Utils.getTodayString();
           }
@@ -133,6 +144,18 @@
             }
           })
       },
+
+      countDateList(projectIds) {
+        let vm = this;
+        let queryParams = "?projectIds="  + (projectIds == null ? '' :  projectIds.join(","));
+        vm.axios.get('/sign-center/api/count/dates' + queryParams)
+          .then(res => {
+            if (res.data.status === 200) {
+              vm.dateList = res.data.data;
+            }
+          })
+      }
+
     }
   }
 </script>
@@ -155,7 +178,7 @@
   }
 
   .wh_container >>> .wh_content_item .wh_chose_day {
-    background-color: #df8449;
+    background-color: #363636;
     color: #fff;
   }
 
@@ -171,8 +194,41 @@
     color: #fff;
   }
 
+  /**
+    多种样式主题
+   */
+  .wh_container >>> .mark0 {
+    background-color: #00C5CD;
+    border-radius: 50%;
+    color: #fff;
+  }
   .wh_container >>> .mark1 {
-    background-color: #3696F0;
+    background-color: #1AAD19;
+    border-radius: 50%;
+    color: #fff;
+  }
+  .wh_container >>> .mark2 {
+    background-color: #FF69B4;
+    border-radius: 50%;
+    color: #fff;
+  }
+  .wh_container >>> .mark3 {
+    background-color: #FF4500;
+    border-radius: 50%;
+    color: #fff;
+  }
+  .wh_container >>> .mark4 {
+    background-color: #BA55D3;
+    border-radius: 50%;
+    color: #fff;
+  }
+  .wh_container >>> .mark5 {
+    background-color: #668B8B;
+    border-radius: 50%;
+    color: #fff;
+  }
+  .wh_container >>> .mark6 {
+    background-color: #1E90FF;
     border-radius: 50%;
     color: #fff;
   }
