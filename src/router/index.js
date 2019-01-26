@@ -2,6 +2,7 @@ import Vue from 'vue'
 import Router from 'vue-router'
 import Login from '@/components/Login'
 import Core from '@/components/Core'
+import Admin from '@/components/admin/List'
 
 Vue.use(Router);
 
@@ -21,6 +22,11 @@ export default new Router({
       path: '/',
       name: 'core',
       component: Core
+    },
+    {
+      path: '/admin',
+      name: 'admin',
+      component: Admin
     }
   ]
 })
