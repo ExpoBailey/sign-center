@@ -18,28 +18,27 @@
       :before-close="beforeClose"
     >
 
-      <van-field
-        v-model="username"
-        label="用户名"
-        placeholder="请输入用户名"
-      />
+      <!--<van-field-->
+        <!--label="用户名"-->
+        <!--placeholder="请输入用户名"-->
+      <!--/>-->
 
-      <van-cell-group>
-        <van-switch-cell v-model="typeFlag" title="是否奖品" />
-      </van-cell-group>
+      <!--<van-cell-group>-->
+        <!--<van-switch-cell v-model="typeFlag" title="是否奖品" />-->
+      <!--</van-cell-group>-->
 
-      <van-cell-group>
-        <van-switch-cell v-model="statusFlag" title="启用" />
-      </van-cell-group>
+      <!--<van-cell-group>-->
+        <!--<van-switch-cell v-model="statusFlag" title="启用" />-->
+      <!--</van-cell-group>-->
 
-      <van-slider v-model="award.probable" @change="changeProb" :step="step" :max="max" :min="min" active-color="#f44">
-        <div
-          slot="button"
-          class="custom-button"
-        >
-          {{ award.probable }}
-        </div>
-      </van-slider>
+      <van-row type="flex" >
+        <van-col span="16">概率</van-col>
+        <van-col span="8" justify="center">{{sliderValue}}%</van-col>
+      </van-row>
+      <van-slider v-model="sliderValue"
+                  bar-height="4px"
+                  active-color="#f44"
+                  @change="changeProb"/>
 
     </van-dialog>
 
@@ -59,11 +58,7 @@
           status: 1, // 1启用，0禁用
           probable: 0.5
         },
-        slider: {
-          step: 0.01,
-          max:1,
-          min: 0.1
-        }
+        sliderValue:50
       };
     },
     computed: {
@@ -82,7 +77,7 @@
         set(flag) {
           this.award.status = flag ? 1 : 0;
         }
-      }
+      },
     },
     methods: {
       onClickLeft() {
@@ -94,7 +89,8 @@
       },
 
       changeProb(value) {
-        console.log(value);
+        this.award.probable = value / 100;
+        console.log("概率：" + this.award.probable)
       },
 
       beforeClose(action, done) {
@@ -112,12 +108,4 @@
    .content {
      background-color: #c9c9c9;
    }
-  .custom-button {
-    content: '';
-    position: absolute;
-    width: 200%;
-    height: 200%;
-    top: -50%;
-    left: -50%;
-  }
 </style>
