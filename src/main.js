@@ -11,6 +11,8 @@ import 'jquery-weui/dist/js/jquery-weui.js'
 import axios from 'axios'
 import Vant from 'vant';
 import 'vant/lib/index.css';
+import '../static/css/title.css';
+
 
 
 Vue.config.productionTip = false
