@@ -68,9 +68,14 @@
         @load="onLoad"
       >
 
-        <van-swipe-cell class="swipe-award" :right-width="130" :left-width="130" :on-close="onClose" v-for="(item, index) in list" :data="item.id"
+        <van-swipe-cell class="swipe-award"
+                        :right-width="130"
+                        :left-width="130"
+                        :on-close="onClose"
+                        v-for="(item, index) in list"
+                        :data="item.id" :status="item.status"
                         :key="index">
-          <span slot="left">修改</span>
+          <span slot="left">编辑</span>
           <van-cell-group>
 
             <van-cell :title="item.name">
@@ -97,10 +102,9 @@
             </van-cell>
 
           </van-cell-group>
-          <span slot="right" v-if="item.status == 1">禁用</span>
+          <span slot="right" v-if="item.status === 1">禁用</span>
           <span slot="right" v-else>启用</span>
         </van-swipe-cell>
-
 
       </van-list>
 
@@ -277,6 +281,7 @@
 
       onClose(clickPosition, instance) {
         let id = instance.$attrs.data;
+        let status = instance.$attrs.status;
         switch (clickPosition) {
           case 'left':
             this.loadUpdateData(id);
@@ -284,7 +289,10 @@
             break;
           case 'cell':
           case 'outside':
+            instance.close();
+            break;
           case 'right':
+            this.updateStatus(id, status === 0 ? 1: 0);
             instance.close();
             break;
         }
@@ -307,6 +315,33 @@
           )
           .catch(error => {
             vm.$toast.fail(error);
+          })
+      },
+
+      updateStatus(id, status) {
+        let vm = this;
+        vm.$toast.loading();
+        vm.axios.post("/sign-center/api/award/status", {
+          id: id,
+          status: status
+        })
+          .then(res => {
+            vm.$toast.clear();
+            if (res.data.status === 200) {
+              vm.$toast.success({
+                message: status === 0 ? "已禁用" : "已启用",
+                forbidClick: true,
+                duration: 2000
+              });
+            } else {
+              vm.$notify(res.data.desc);
+            }
+          })
+          .then(res => {
+            vm.onRefresh();
+          })
+          .catch(error => {
+            vm.$notify(error);
           })
       }
 
