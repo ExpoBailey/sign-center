@@ -75,19 +75,30 @@
                         v-for="(item, index) in list"
                         :data="item.id" :status="item.status"
                         :key="index">
+
           <span slot="left">编辑</span>
+
           <van-cell-group>
 
             <van-cell :title="item.name">
+
+              <img slot="icon"
+                  class="list-icon-img"
+                  v-if="item.path == null || item.path == ''"
+                  :src="defaultImg" size="3em"></img>
               <van-icon slot="icon"
                         class="list-icon"
+                        v-else
                         :name="item.path"
                         :color="item.color" size="3em"></van-icon>
+
               <template slot="title" class="center-div">
                 <p class="custom-text"><strong>{{item.name}}</strong></p>
                 <van-tag type="danger" v-if="item.status == 0">禁用</van-tag>
                 <van-tag type="primary" v-else>启用</van-tag>
+                <van-tag mark type="success" v-if="item.type == 1">奖品</van-tag>
               </template>
+
               <van-circle
                 slot="right-icon"
                 class="circle-text"
@@ -98,12 +109,17 @@
                 :text="item.probable * 100 + '%'"
                 :stroke-width="60"
                 layer-color="#ebedf0"
-                color="#07c160"></van-circle>
+                :color="item.probable * 100 >= 50 ? '#f44' : '#07c160'"></van-circle>
+
             </van-cell>
 
           </van-cell-group>
-          <span slot="right" v-if="item.status === 1">禁用</span>
-          <span slot="right" v-else>启用</span>
+          <div slot="right" v-if="item.status === 1">
+            <span>禁用</span>
+          </div>
+          <div slot="right" class="cell-right-div" v-else>
+            <span>启用</span>
+          </div>
         </van-swipe-cell>
 
       </van-list>
@@ -115,10 +131,12 @@
 </template>
 <script>
   import iconList from './IconList'
+  import defaultImg from '../../assets/images/award/wu.png'
 
   export default {
     components: {
-      iconList
+      iconList,
+      defaultImg
     },
     data() {
       return {
@@ -126,6 +144,7 @@
         showIconPopup: false,
         username: '',
         password: '',
+        defaultImg: defaultImg,
         award: {
           id: null,
           type: 1, // 正常奖品
@@ -330,8 +349,7 @@
             if (res.data.status === 200) {
               vm.$toast.success({
                 message: status === 0 ? "已禁用" : "已启用",
-                forbidClick: true,
-                duration: 2000
+                duration: 1000
               });
             } else {
               vm.$notify(res.data.desc);
@@ -421,5 +439,22 @@
     background-color: #07c160;
     align-content: center;
     display: inline-grid;
+  }
+
+  .list-icon-img {
+    height: 50px;
+    margin: auto 10px;
+  }
+
+  .cell-right-div {
+    background-color: #1989fa;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    display: inline-grid;
+  }
+
+  .cell-right-div span {
+    margin: auto 0;
   }
 </style>

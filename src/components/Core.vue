@@ -4,7 +4,32 @@
 
       <div class="weui-tab__bd tab_box_content">
 
-        <div id="sign" class="weui-tab__bd-item weui-tab__bd-item--active">
+        <div id="sign" class="weui-tab__bd-item weui-tab__bd-item--active sign-content">
+
+          <van-notice-bar
+            left-icon="volume-o"
+            class="top-notice" v-show="noticeText.length > 0"
+            :text="noticeText[0]">
+          </van-notice-bar>
+
+          <van-popup v-model="showAward" class="award-popup" @click-overlay="cloneAward">
+            <transition enter-active-class="animated zoomInLeft fast"
+                        leave-active-class="animated zoomOutDown"
+                        @leave-after="showAward = false">
+              <div class="award-div" v-show="showAwardTran">
+                <img slot="icon"
+                     class="award-icon-img"
+                     v-if="award.path == null || award.path == ''"
+                     :src="defaultImg"/>
+                <van-icon slot="icon"
+                          class="list-icon"
+                          v-else
+                          :name="award.path"
+                          :color="award.color" size="8em"></van-icon>
+                <p>{{award.name}}</p>
+              </div>
+            </transition>
+          </van-popup>
 
           <div class="header-height">
             <transition enter-active-class="animated zoomInUp fast"
@@ -29,15 +54,13 @@
                   :min-date="patch.minDate"
                   :max-date="patch.maxDate"
                   :visible-item-count="patch.count"
-                  @change="dateChange"
-                />
+                  @change="dateChange"></van-datetime-picker>
                 <van-datetime-picker
                   class="patch-time"
                   v-model="patch.currentTime"
                   type="time"
                   :visible-item-count="patch.count"
-                  @change="timeChange"
-                />
+                  @change="timeChange"></van-datetime-picker>
               </div>
             </transition>
           </div>
@@ -216,14 +239,12 @@
           <div id="calendarPopup" class="weui-popup__container">
             <div class="weui-popup__overlay "></div>
             <div class="weui-popup__modal calendar-model ">
-              <!--<calendar-show v-bind:list="signInfoList" v-if="countView == 1"></calendar-show>-->
-              <!--<full-calendar v-bind:list="signInfoList" v-if="countView == 1"></full-calendar>-->
               <sign-calendar v-bind:projectIds="query.projectIds" v-if="countView == 1" class="c-popup"></sign-calendar>
 
               <div class="bottom-btn">
-                    <a href="javascript:;" class="weui-btn weui-btn_primary close-popup btn-pos"
-                       @click="countView = 0">关闭
-                    </a>
+                  <a href="javascript:;" class="weui-btn weui-btn_primary close-popup btn-pos"
+                     @click="countView = 0">关闭
+                  </a>
               </div>
 
             </div>
@@ -299,6 +320,7 @@
   import Utils from "../utils"
   import CountList from "./CountList"
   import SignCalendar from "./SignCalendar/SignCalendar"
+  import defaultImg from '../assets/images/award/wu.png'
 
   export default {
     name: 'core',
@@ -355,7 +377,17 @@
           currentDate: new Date(),
           currentDateStr: Utils.getTodayString(),
           currentTime: "12:30"
-        }
+        },
+        noticeText: [],
+        showAward: false,
+        showAwardTran:false,
+        award: {
+          path: '',
+          color: '',
+          name: '',
+          type: 1
+        },
+        defaultImg: defaultImg,
       }
     },
     computed: {
@@ -561,7 +593,19 @@
         vm.axios.post('/sign-center/api/core/sign', vm.sign)
           .then(res => {
             if (res.data.status === 200) {
-              $.toptip('嘀卡成功', 'success');
+              let award = res.data.data;
+              if (award !== undefined && award !== null && award.type > 0) {
+                vm.award = award;
+                console.log(vm.award);
+                vm.showAward = true;
+                vm.showAwardTran = true;
+                vm.noticeText.push("哎哟喂! 不得了了! 恭喜您在打卡抽奖活动中, 获得一份【" + award.name + "】奖品！！！");
+                window.setTimeout(function () {
+                  vm.noticeText.shift();
+                }, 10000)
+              } else {
+                vm.$toast('嘀卡成功');
+              }
             }
           })
           .then(res => {
@@ -753,10 +797,18 @@
         this.patch.currentTime = picker.getValues().join(":")
       },
 
+      cloneAward() {
+        this.showAwardTran = false;
+      }
+
     }
   }
 </script>
 <style scoped>
+
+  .sign-content {
+    background-color: #fff;
+  }
 
   .patch-date {
     margin-bottom: 10px;
@@ -780,6 +832,13 @@
   .header-height {
     height: 7.5em;
     margin: 1em 1em;
+  }
+
+  .top-notice {
+    position: absolute;
+    display: flex;
+    width: 100%;
+    z-index: 99999999;
   }
 
   .patch-tag {
@@ -943,5 +1002,18 @@
   .count-title {
     padding-top: .77em;
     margin-top: 0;
+  }
+
+  .award-popup {
+    background-color: transparent;
+  }
+
+  .award-div {
+    text-align: center;
+    color: #fff;
+  }
+
+  .award-icon-img {
+    height: 7em;
   }
 </style>

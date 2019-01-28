@@ -30,8 +30,6 @@ export default {
 
 <style scoped>
 
-
-
 .child-view {
   position: absolute;
   width: 100%;
