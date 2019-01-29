@@ -58,7 +58,6 @@
 
 
     <van-pull-refresh v-model="isRefresh" @refresh="onRefresh">
-
       <van-list
         v-model="loading"
         :error.sync="error"
@@ -158,7 +157,7 @@
         list: [],
         pager: {
           pageIndex: 0,
-          pageSize: 1,
+          pageSize: 4,
           pageCount: 1,
           itemCount: 0
         },
@@ -291,11 +290,15 @@
       },
 
       onRefresh() {
-        this.isRefresh = false;
-        this.count++;
-        this.list = [];
-        this.pager.pageIndex = 0;
-        this.onLoad();
+        let vm = this;
+        setTimeout(() => {
+          vm.isRefresh = false;
+          vm.count++;
+          vm.list = [];
+          vm.pager.pageIndex = 0;
+          console.log(vm.isRefresh);
+            vm.onLoad();
+        }, 500)
       },
 
       onClose(clickPosition, instance) {

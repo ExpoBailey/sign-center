@@ -222,8 +222,6 @@
             </div>
           </div>
 
-          <!--<a @click="out" class="weui-btn weui-btn_primary">退出</a>-->
-
           <div class="weui-cells__title count-title">
             我的纪录
             <!--<img src="../assets/images/list.png" class="view-img" v-if="countView != 0" @click="cutView(0)">-->

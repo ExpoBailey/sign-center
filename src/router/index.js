@@ -4,6 +4,7 @@ import Login from '@/components/Login'
 import Core from '@/components/Core'
 import Admin from '@/components/admin/List'
 import Person from '@/components/person/Person.vue'
+import SignRecord from '@/components/person/SignRecord.vue'
 
 Vue.use(Router);
 
@@ -33,6 +34,11 @@ export default new Router({
       path: '/person',
       name: 'person',
       component: Person
+    },
+    {
+      path: '/person/sign/record',
+      name: 'signRecord',
+      component: SignRecord
     }
   ]
 })
